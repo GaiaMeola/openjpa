@@ -63,6 +63,7 @@ Once the Docker image for the database is not needed any longer one can stop and
  mvn -N -Ptest-mysql-docker docker:stop
  mvn -N -Ptest-mysql-docker docker:remove
 
+// Test per il workflow di GitHub Actions
 
 The following Maven profiles do exist so far:
 

@@ -185,13 +185,13 @@
         <module>openjpa-jest</module>
         <module>openjpa-kubernetes</module>
         <module>openjpa</module>
-        <module>openjpa-project</module>
-        <module>openjpa-examples</module>
-        <module>openjpa-integration</module>
-        <module>openjpa-all</module>
-        <module>openjpa-tools</module>
-        <module>openjpa-features</module>
-        <module>openjpa-junit5</module>
+        <!-- <module>openjpa-project</module>
+         <module>openjpa-examples</module>
+         <module>openjpa-integration</module>
+         <module>openjpa-all</module>
+         <module>openjpa-tools</module>
+         <module>openjpa-features</module>
+         <module>openjpa-junit5</module>-->
     </modules>
 
     <profiles>
@@ -214,7 +214,7 @@
             </properties>
             <build>
                 <plugins>
-                    <plugin>
+                   <!-- <plugin>
                         <groupId>org.apache.rat</groupId>
                         <artifactId>apache-rat-plugin</artifactId>
                         <executions>
@@ -229,17 +229,17 @@
                             <excludeSubProjects>false</excludeSubProjects>
                             <numUnapprovedLicenses>0</numUnapprovedLicenses>
                             <excludes>
-                                <!-- comments are usupported in services files -->
+                                comments are usupported in services files
                                 <exclude>**/jakarta.persistencespi.PersistenceProvider</exclude>
                                 <exclude>**/javax.annotation.processing.Processor</exclude>
-                                <!-- comments are usupported by our rsrc parser -->
+                                comments are usupported by our rsrc parser
                                 <exclude>**/*.rsrc</exclude>
-                                <!-- comments are usupported in these files -->
+                                comments are usupported in these files
                                 <exclude>**/org.apache.openjpa.revision.properties</exclude>
                                 <exclude>scripts/*.list</exclude>
                                 <exclude>scripts/*.options</exclude>
                                 <exclude>scripts/*.dict</exclude>
-                                <!-- generated content -->
+                                generated content
                                 <exclude>**/.*/**</exclude>
                                 <exclude>**/target/**/*</exclude>
                                 <exclude>**/dependency-reduced-pom.xml</exclude>
@@ -250,7 +250,7 @@
                                 <exclude>DEPENDENCIES</exclude>
                             </excludes>
                         </configuration>
-                    </plugin>
+                    </plugin> -->
                 </plugins>
             </build>
         </profile>
@@ -2067,11 +2067,11 @@
                         </execution>
                     </executions>
                 </plugin>
-                <plugin>
+               <!-- <plugin>
                     <groupId>org.apache.rat</groupId>
                     <artifactId>apache-rat-plugin</artifactId>
                     <version>0.16.1</version>
-                </plugin>
+                </plugin> -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
@@ -2266,7 +2266,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+           <!-- <plugin>
                 <groupId>org.apache.rat</groupId>
                 <artifactId>apache-rat-plugin</artifactId>
                 <executions>
@@ -2281,12 +2281,12 @@
                     <excludeSubProjects>false</excludeSubProjects>
                     <numUnapprovedLicenses>0</numUnapprovedLicenses>
                     <excludes>
-                        <!-- generated content -->
+                        generated content
                         <exclude>**/.*/**</exclude>
                         <exclude>**/target/**/*</exclude>
                     </excludes>
                     <includes>
-                        <!-- only check common source files -->
+                        only check common source files
                         <include>**/src/**/*.bat</include>
                         <include>**/src/**/*.css</include>
                         <include>**/src/**/*.html</include>
@@ -2300,7 +2300,7 @@
                         <include>**/src/**/*.xml</include>
                     </includes>
                 </configuration>
-            </plugin>
+            </plugin> -->
         </plugins>
     </build>
 

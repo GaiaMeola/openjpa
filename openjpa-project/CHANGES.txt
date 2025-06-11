@@ -1,0 +1,187 @@
+Apache OpenJPA 3.2.0
+Licensed under Apache License 2.0 - http://www.apache.org/licenses/LICENSE-2.0
+--------------------------------------------------------------------------------
+
+Content
+-------
+   * Overview
+   * License
+   * Notices
+   * Prerequisites
+   * Documentation
+   * Getting Involved
+   * Included Changes
+     * Sub-tasks
+     * Bugs
+     * Improvements
+     * New Features
+     * Test
+
+
+Overview
+--------
+   The Apache OpenJPA community is proud to release a SNAPSHOT distribution of
+   OpenJPA 3.2.0. This distribution is based on the final JSR 317 Java
+   Persistence API, Version 2.02 specification, while remaining backwards
+   compatible with prior releases based on the Java Persistence API
+   (JPA 1.0, 2.0, 2.1) part of Java Community Process JSR-220
+   (Enterprise JavaBeans 3.0).
+
+   Additional information on the OpenJPA project may be found at the project
+   web site:
+      http://openjpa.apache.org
+
+
+License
+-------
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements. See the NOTICE file distributed with this
+   work for additional information regarding copyright ownership. The ASF
+   licenses this file to you under the Apache License, Version 2.0 (the
+   "License"); you may not use this file except in compliance with the
+   License. You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations
+   under the License.
+
+   The license may also be found in LICENSE.txt included in each assembly.
+
+
+Notices
+-------
+   Copyright 2006,2021 The Apache Software Foundation.
+   Apache, the Apache feather logo and OpenJPA are trademarks of
+   The Apache Software Foundation.
+
+   This product includes software developed at
+   The Apache Software Foundation (http://www.apache.org/).
+
+   OpenJPA includes the persistence and orm schemas from the JPA specifications.
+   Copyright 2005-2009 Sun Microsystems, Inc. All rights reserved.
+   OpenJPA elects to include this software in this distribution under the
+   CDDL license.  You can obtain a copy of the License at:
+       https://glassfish.dev.java.net/public/CDDL+GPL.html
+   The source code is available at:
+       http://java.net/projects/glassfish
+
+   The complete list of notices can be found in NOTICE.txt included in each
+   assembly.
+
+
+Prerequisites
+-------------
+   OpenJPA requires Java SE 8 or higher and a relational
+   database of some sort.
+
+
+Documentation
+-------------
+   If you have questions about OpenJPA, a good source of information is the
+   online product manual. You can find the manual for the current release as
+   well as older releases of OpenJPA at
+       http://openjpa.apache.org/documentation.html
+
+   If you can't find what you are looking for in the manual or would like more
+   clarification, please post to the OpenJPA development mailing list.
+   Information on all of the OpenJPA mailing lists may be found here:
+       http://openjpa.apache.org/mailing-lists.html
+
+
+Getting Involved
+----------------
+   The Apache OpenJPA project is being built by the open source community for
+   the open source community - we welcome your input and contributions!
+
+   What we are looking for
+        * Source code and fixes contributions
+        * Documentation assistance
+        * Product and feature suggestions
+        * Detailed and constructive feedback
+        * Articles and whitepapers
+
+   How do I contribute?
+        * To discuss Apache OpenJPA topics check out the mailing lists.
+        * Informal discussion also occurs on the #openjpa IRC channel on
+          freenode.net.
+        * Bugs and other issues can be posted on the issue tracker at
+          https://issues.apache.org/jira/browse/OPENJPA
+        * Our homepage https://openjpa.apache.org contains more information
+
+
+Included Changes in OpenJPA 3.2.0
+---------------------------------
+
+Sub-task
+
+    [OPENJPA-1594] - Tests not handling new QueryTimeOut and LockTimeOut exceptions correctly
+
+Bug
+
+    [OPENJPA-1303] - Reserved words are not mapped correctly in table definition
+    [OPENJPA-2182] - DB dictionaries do not properly process reserved words for column names
+    [OPENJPA-2648] - hsqldb @Id long create table as interger instead of bigint
+    [OPENJPA-2731] - Problems with Boolean Representation with Postgres
+    [OPENJPA-2788] - Anonymous parameters are not being picked when adding via CriteriaBuilder
+    [OPENJPA-2789] - JDBC connection not closed when running named query in explicitly opened connection
+    [OPENJPA-2795] - generate foreign key indexes for Oracle
+    [OPENJPA-2814] - Memory Leak in ForeignKey class
+    [OPENJPA-2821] - Subclassing enhancer must use AsmAdapter
+    [OPENJPA-2828] - org.apache.openjpa.kernel.conf.Specification.equals() : returns true even if different
+    [OPENJPA-2829] - javax script execution does not ignore empty lines
+    [OPENJPA-2830] - jakarta.persistence.sql-load-script-source does not support ";" in strings
+    [OPENJPA-2832] - DROP COLUMN does not use delimiters and always add double quotes
+    [OPENJPA-2834] - Performance issue while deploying in Wildfly EAP with OpenJPA-3.1.1
+    [OPENJPA-2842] - openjpa.Log=log4j vs log4j2 - reintroduce log4j support and add explicit log4j2 support
+    [OPENJPA-2843] - try to get rid of com.ibm dependency
+    [OPENJPA-2846] - Enhancement does not work with JDK 16
+    [OPENJPA-2849] - select(max) etc of LocalDate, LocalDateTime etc leads to ClassCastException
+    [OPENJPA-2850] - [MSSQL] BLOB column type is not supported
+    [OPENJPA-2851] - argument CURRENT_DATE cannot handle java.time.LocalDateTime entity fields
+    [OPENJPA-2854] - fix OffsetTime handling for PostgreSQL
+    [OPENJPA-2855] - primary keys do no respect naming rules
+    [OPENJPA-2856] - [MariaDB] improve TIME handling
+    [OPENJPA-2857] - [MariaDB] locking in some cases gets handled via sqlState 70100
+    [OPENJPA-2858] - update dbcp2 to 2.8.0
+    [OPENJPA-2859] - [HSQLDB] HSQLDictionary wrongly maps double to NUMERIC without precision
+    [OPENJPA-2860] - [Postgres] use setQueryTimeout for PostgreSQL >= 10
+    [OPENJPA-2861] - select sum(CASE x WHEN x THEN 1 ELSE 0 ) returns String instead of Long.
+    [OPENJPA-2862] - select SUM doesn't return spec defined types
+    [OPENJPA-2863] - java.time.LocalDateTime in Oracle gets rounded to just 3 digits
+    [OPENJPA-2864] - respect the Columns precision when persisting a java.sql.Timestamp value
+    [OPENJPA-2865] - [Oracle] use native java.time JDBC features
+    [OPENJPA-2866] - [Oracle] add GenerationType#IDENTITY support for Oracle
+    [OPENJPA-2871] - upgrade to xbean-4.20 to remove transitive ASM dependency
+
+New Feature
+
+    [OPENJPA-2816] - Add HerdDB DBDictionary
+
+Improvement
+
+    [OPENJPA-84] - Escape sql reserved words in column names
+    [OPENJPA-2665] - refactore code to use more Java7 features.
+    [OPENJPA-2765] - Fix documentation of JPA spec compliance
+    [OPENJPA-2820] - Track when a DBIdentifier is already delimited in order to save memory allocations and cpu
+    [OPENJPA-2822] - enhancer can rely on at least java8
+    [OPENJPA-2823] - treat jakarta.* as spec class in enhancer
+    [OPENJPA-2852] - Maven Plugin should be marked thread safe
+    [OPENJPA-2853] - [MSSQL Server] support sendTimeAsDatetime handling
+    [OPENJPA-2867] - generate list of reserved Words via unit test
+    [OPENJPA-2868] - update reserved column names list for various of our DBDictionaries
+    [OPENJPA-2870] - update specification-version to 2.2
+
+Task
+
+    [OPENJPA-2819] - Add simple GitHub Actions validation for Pull Requests
+    [OPENJPA-2824] - When @OpenJPASupport (junit5 extension) is used, ensure to not do auto enhancement more than once
+    [OPENJPA-2831] - Import commons-collections4 classes instead of the dependency in openjpa-lib
+    [OPENJPA-2833] - Upgrade to ASM 9
+    [OPENJPA-2835] - update to xbean-asm9 for Java16 support
+    [OPENJPA-2838] - Add a JUL LogFactory
+    [OPENJPA-2840] - Enable a light SPI for asm support in kernel module
+

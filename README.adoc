@@ -1,0 +1,74 @@
+= Apache OpenJPA - README
+
+== Preface
+Thank you for downloading this release of Apache OpenJPA.
+
+Apache OpenJPA is an implementation of the Jakarta Persistence API 3.0 specification.
+
+
+== License
+The content of this repository is licensed under Apache License 2.0
+http://www.apache.org/licenses/LICENSE-2.0
+
+== Further Information
+
+The following files can be found in the openjpa-project subdirectory:
+
+* openjpa-project/BUILDING.txt
+* openjpa-project/CHANGES.txt
+* openjpa-project/RELEASE-NOTES.html
+
+For documentation and project information, please visit our project site:
+    http://openjpa.apache.org/
+
+
+== Compiling
+
+The best way to compile Apache OpenJPA yourself is to run the build against the default derby database.
+
+ $> mvn clean install -Dsurefire.excludes.locking=**/*
+
+== Testing against different Databases
+
+The Apache OpenJPA project also contains a setup for testing against multiple databases.
+The easiest way is to use Docker.
+We assume that Docker is installed to be used by your current user.
+The respective database image has to be started manually before starting the build.
+The reason for not starting it as part of the build itself is to be able to look at the database content after the build did run.
+
+[TIP]
+====
+*Hint for running with Podman*
+
+Some distributions switched from native Docker to Podman.
+If you get an error like `missing DOCKER_HOST` then you might try running the following command:
+
+  export DOCKER_HOST="unix:/run/user/$(id -u)/podman/podman.sock"
+  podman system service -t 3600 &
+  mvn ...
+====
+
+To start e.g. a PostgreSQL Docker image you can simply invoke the following command.
+Note the -N Maven option which stands for 'non-recursive'.
+This is used because the docker container is configured only at the root project but not at his children.
+
+ mvn -N -Ptest-mysql-docker docker:start
+
+After that, you can execute your tests with the respective Maven profile
+
+ mvn clean install -Ptest-mysql-docker
+
+Once the Docker image for the database is not needed any longer one can stop and remove it:
+
+ mvn -N -Ptest-mysql-docker docker:stop
+ mvn -N -Ptest-mysql-docker docker:remove
+
+// Test per il workflow di GitHub Actions
+
+The following Maven profiles do exist so far:
+
+* test-mysql-docker
+* test-mariadb-docker
+* test-postgresql-docker
+* test-mssql-docker
+* test-oracle-docker

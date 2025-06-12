@@ -106,6 +106,11 @@
         <jakarta.validation-api.version>3.0.2</jakarta.validation-api.version>
         <jakarta.jms-api.version>3.1.0</jakarta.jms-api.version>
 
+        <!-- addition by GAIA, to run JACOCO -->
+        <sonar.coverage.jacoco.xmlReportPaths>
+            ${maven.multiModuleProjectDirectory}/jacoco/target/site/jacoco-aggregate/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
+        <!-- addition by GAIA, to run JACOCO -->
     </properties>
 
     <licenses>
@@ -185,6 +190,11 @@
         <module>openjpa-jest</module>
         <module>openjpa-kubernetes</module>
         <module>openjpa</module>
+        <!-- addition by GAIA to run JACOCO -->
+        <module>jacoco</module>
+        <!-- addition by GAIA to run JACOCO -->
+
+        <!-- addition by GAIA to build -->
         <!-- <module>openjpa-project</module>
          <module>openjpa-examples</module>
          <module>openjpa-integration</module>
@@ -192,6 +202,7 @@
          <module>openjpa-tools</module>
          <module>openjpa-features</module>
          <module>openjpa-junit5</module>-->
+        <!-- addition by GAIA to build -->
     </modules>
 
     <profiles>
@@ -400,6 +411,31 @@
                 </plugins>
             </build>
         </profile>
+
+        <!-- addition by Gaia to run JACOCO -->
+        <profile>
+            <id>coverage</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- addition by Gaia to run JACOCO -->
 
         <!-- =================== -->
         <!--  Database Profiles  -->

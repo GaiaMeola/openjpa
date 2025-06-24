@@ -111,6 +111,9 @@
             ${maven.multiModuleProjectDirectory}/jacoco/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
         <!-- addition by GAIA, to run JACOCO -->
+        <!-- addition by GAIA to run EVOSUITE -->
+        <evosuiteVersion>1.2.0</evosuiteVersion>
+        <!-- addition by GAIA to run EVOSUITE -->
     </properties>
 
     <licenses>
@@ -1944,6 +1947,25 @@
                 <artifactId>annotations</artifactId>
                 <version>3.0.1</version>
             </dependency>
+            <!-- addition by GAIA to run EVOSUITE -->
+            <dependency>
+                <groupId>org.evosuite</groupId>
+                <artifactId>evosuite-standalone-runtime</artifactId>
+                <version>1.2.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>4.11.0</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.openjpa</groupId>
+                <artifactId>openjpa-lib</artifactId>
+                <version>4.1.1</version>
+            </dependency>
+            <!-- addition by GAIA to run EVOSUITE -->
         </dependencies>
     </dependencyManagement>
 
@@ -2000,6 +2022,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.5.2</version>
                     <configuration>
                         <argLine>${surefire.jvm.args}</argLine>
                         <redirectTestOutputToFile>true</redirectTestOutputToFile>
@@ -2063,6 +2086,12 @@
                             <name>openjpa.jdbc.DriverDataSource</name>
                             <value>${tests.openjpa.driverDataSource}</value>
                         </property>
+                        <!-- addition by GAIA to run EVOSUITE -->
+                            <property>
+                                <name>listener</name>
+                                <value>org.evosuite.runtime.InitializingListener</value>
+                            </property>
+                        <!-- addition by GAIA to run EVOSUITE -->
                     </systemProperties>
                     </configuration>
                 </plugin>
@@ -2345,7 +2374,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.0.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

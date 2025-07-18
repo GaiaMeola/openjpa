@@ -83,5 +83,13 @@
             <artifactId>jmock-junit4</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- addition by GAIA to run EVOSUITE -->
+        <dependency>
+            <groupId>org.evosuite</groupId>
+            <artifactId>evosuite-standalone-runtime</artifactId>
+            <version>1.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- addition by GAIA to run EVOSUITE -->
     </dependencies>
 </project>

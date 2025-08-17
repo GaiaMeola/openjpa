@@ -98,7 +98,7 @@ public class Utils {
     }
 
     // Metodo di utilità per inserire nella softMap usando reflection
-    private static void putInSoftMap(CacheMap map, Object key, Object value) throws Exception {
+    public static void putInSoftMap(CacheMap map, Object key, Object value) throws Exception {
         java.lang.reflect.Field softMapField = CacheMap.class.getDeclaredField("softMap");
         softMapField.setAccessible(true);
         @SuppressWarnings("unchecked")
@@ -107,7 +107,7 @@ public class Utils {
     }
 
     // Metodo di utilità per inserire nella pinnedMap usando reflection
-    private static void putInPinnedMap(CacheMap map, Object key, Object value) throws Exception {
+    public static void putInPinnedMap(CacheMap map, Object key, Object value) throws Exception {
         Field pinnedMapField = CacheMap.class.getDeclaredField("pinnedMap");
         pinnedMapField.setAccessible(true);
         @SuppressWarnings("unchecked")

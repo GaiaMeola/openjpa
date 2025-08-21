@@ -35,7 +35,7 @@
     <name>OpenJPA Parent POM</name>
     <description>Apache OpenJPA implementation of Jakarta JPA 3.1</description>
 
-    <version>4.1.1-SNAPSHOT</version>
+    <version>4.1.2-SNAPSHOT</version>
 
     <properties>
         <java.class.version>11</java.class.version>
@@ -80,7 +80,7 @@
         <hsqldb.version>2.7.4</hsqldb.version>
         <mysql.connector.version>5.1.49</mysql.connector.version>
         <mariadb.connector.version>2.7.2</mariadb.connector.version>
-        <postgresql.connector.version>42.7.5</postgresql.connector.version>
+        <postgresql.connector.version>42.7.7</postgresql.connector.version>
         <mssql.connector.version>12.8.1.jre11</mssql.connector.version>
 
         <!-- other common versions -->
@@ -451,7 +451,7 @@
                 </property>
             </activation>
             <properties>
-                <h2.version>1.4.200</h2.version>
+                <h2.version>2.3.232</h2.version>
                 <connection.driver.name>org.h2.Driver</connection.driver.name>
                 <connection.url>jdbc:h2:./target/database/openjpa-h2-database</connection.url>
                 <connection.username />

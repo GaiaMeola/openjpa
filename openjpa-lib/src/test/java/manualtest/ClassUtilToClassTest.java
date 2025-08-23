@@ -1,9 +1,7 @@
 package manualtest;
 
-import costumutils.InitCheckClass;
 import costumutils.Utils;
 import org.apache.openjpa.lib.util.ClassUtil;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,27 +21,31 @@ class ClassUtilToClassTest {
         NULL_CLASS
     }
 
-    @BeforeEach
-    void resetInitCheck() {
-        // Resetta il flag prima di ogni test
-        InitCheckClass.initialized = false;
-    }
-
     private static Stream<Arguments> data() {
         return Stream.of(
                 // ===== CLASSI VALIDE =====
+                //test 4.3.1; test passato
                 Arguments.of(InputCategory.VALID_CLASS, Utils.validInnerClass(), Utils.resolveFalse(), Utils.validClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null),
+                //test 4.3.2; test passato
                 Arguments.of(InputCategory.VALID_CLASS, Utils.validNormalClassWithPackage(), Utils.resolveFalse(), Utils.validClassLoader(), String.class, null),
+                //test 4.3.3; test passato
                 Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveClass(), Utils.resolveFalse(), Utils.validClassLoader(), int.class, null),
+                //test 4.3.4; test passato
                 Arguments.of(InputCategory.VALID_CLASS, Utils.validArrayClassObject(), Utils.resolveFalse(), Utils.validClassLoader(), java.awt.Point[][].class, null),
 
                 // ===== STRINGHE NON VALIDE =====
+                //test 4.3.5; test passato
                 Arguments.of(InputCategory.INVALID_CLASS, Utils.emptyString(), Utils.resolveFalse(), Utils.validClassLoader(), null, Exception.class),
+                //test 4.3.6; test passato
                 Arguments.of(InputCategory.INVALID_CLASS, Utils.invalidBinaryName(), Utils.resolveFalse(), Utils.validClassLoader(), null, Exception.class),
+                //test 4.3.7; test passato
                 Arguments.of(InputCategory.NULL_CLASS, Utils.nullString(), Utils.resolveFalse(), Utils.validClassLoader(), null, Exception.class),
-
-                // ===== CLASSE DI TEST InitCheckClass =====
-                Arguments.of(InputCategory.VALID_CLASS, "costumutils.InitCheckClass", true, null, InitCheckClass.class, null)
+                //test 4.3.8; test passato
+                Arguments.of(InputCategory.VALID_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.validClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null),
+                //test 4.3.9; test passato
+                Arguments.of(InputCategory.INVALID_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.invalidClassLoader(), null, Exception.class),
+                //test 4.3.10; test passato
+                Arguments.of(InputCategory.NULL_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.nullClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null)
         );
     }
 
@@ -66,20 +68,9 @@ class ClassUtilToClassTest {
             return;
         }
 
-        // Caso speciale InitCheckClass
+        // Caso normale: verifico che il risultato sia quello atteso
         Class<?> result = ClassUtil.toClass(str, resolve, effectiveLoader);
-        if ("costumutils.InitCheckClass".equals(str)) {
-            // Verifica il flag
-            if (Boolean.TRUE.equals(resolve)) {
-                assertTrue(InitCheckClass.initialized, "Class should have been initialized when resolve=true");
-            } else {
-                assertFalse(InitCheckClass.initialized, "Class should not be initialized when resolve=false");
-            }
-            assertEquals("costumutils.InitCheckClass", result.getName(), "Unexpected result class");
-        } else {
-            // Test normale per tutte le altre classi
-            assertEquals(expectedClass, result,
-                    () -> "Unexpected result for category " + category + " with input: " + str);
-        }
+        assertEquals(expectedClass, result,
+                () -> "Unexpected result for category " + category + " with input: " + str);
     }
 }

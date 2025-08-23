@@ -75,20 +75,14 @@ public class Utils {
 
     /** ClassLoader non valido */
     public static ClassLoader invalidClassLoader() {
-        // Creo uno spy di un ClassLoader reale
-        ClassLoader realLoader = Thread.currentThread().getContextClassLoader();
-        ClassLoader spyLoader = spy(realLoader);
-
-        // Intercetto il metodo loadClass per lanciare eccezione sempre
-        try {
-            doAnswer(invocation -> {
-                throw new ClassNotFoundException("Cannot load any class (mocked)");
-            }).when(spyLoader).loadClass(anyString());
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-        return spyLoader;
+        return new ClassLoader() {
+            @Override
+            protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                throw new ClassNotFoundException("Cannot load " + name + " (invalid loader)");
+            }
+        };
     }
+
 
     /** ClassLoader nullo */
     public static ClassLoader nullClassLoader() {

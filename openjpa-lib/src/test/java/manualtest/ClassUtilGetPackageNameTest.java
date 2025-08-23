@@ -21,10 +21,10 @@ class ClassUtilGetPackageNameTest {
 
     private static Stream<Arguments> data() {
         return Stream.of(
-                // 4.2.1: Classe valida con package → restituisce il package
+                // 4.2.1: Classe valida con package → restituisce il package; test passato
                 Arguments.of(InputCategory.VALID_CLASS, String.class, "java.lang", null),
 
-                // 4.2.2 (sottocaso): Classe senza package → restituisce stringa vuota
+                // 4.2.2 (sottocaso): Classe senza package → restituisce stringa vuota; test passato
                 Arguments.of(InputCategory.VALID_CLASS, int.class, "", null),
 
                 // 4.2.3: Classe nulla → restituisce null

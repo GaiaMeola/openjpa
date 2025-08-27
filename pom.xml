@@ -1954,12 +1954,27 @@
                 <version>1.2.0</version>
                 <scope>test</scope>
             </dependency>
+            <!-- addition by GAIA to run Integration Testing -->
             <dependency>
                 <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
+                <artifactId>mockito-inline</artifactId>
                 <version>4.11.0</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.mockito</groupId>
+                        <artifactId>mockito-core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <!-- addition by GAIA to run Integration Testing -->
+
             <dependency>
                 <groupId>org.apache.openjpa</groupId>
                 <artifactId>openjpa-lib</artifactId>

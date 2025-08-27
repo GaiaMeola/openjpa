@@ -86,12 +86,14 @@
         </dependency>
 
         <!-- addition by GAIA to run EVOSUITE -->
+        <!--
         <dependency>
             <groupId>org.evosuite</groupId>
             <artifactId>evosuite-standalone-runtime</artifactId>
             <version>1.2.0</version>
             <scope>test</scope>
         </dependency>
+        -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -105,7 +107,23 @@
             <scope>test</scope>
         </dependency>
         <!-- addition by GAIA to run EVOSUITE -->
+        <!-- addition to run Integration Testing -->
+        <!-- Usa mockito-inline per supportare i mock statici -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>4.11.0</version>
+            <scope>test</scope>
+        </dependency>
 
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>4.11.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- addition to run Integration Testing -->
     </dependencies>
 
     <build>
@@ -171,6 +189,17 @@ openjpa.enhancer.revision=${pcenhancer.git.revision}${uncommitted.changes}
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <!-- addition to run integration testing -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                </configuration>
+            </plugin>
+            <!-- addition to run integration testing -->
         </plugins>
     </build>
 </project>

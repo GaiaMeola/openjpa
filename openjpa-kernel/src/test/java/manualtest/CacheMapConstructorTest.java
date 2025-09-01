@@ -51,13 +51,19 @@ class CacheMapConstructorTest {
                 Arguments.of(true, 100, 100, -1f, 1, IllegalArgumentException.class),
 
                 // 3.11) load = 0, eccezione attesa; test passato
-                Arguments.of(true, 100, 100, 0f, 1, IllegalArgumentException.class)
+                Arguments.of(true, 100, 100, 0f, 1, IllegalArgumentException.class),
 
                 // 3.12) concurrencyLevel = -1, eccezione attesa; test fallito
                 /*Arguments.of(true, 100, 100, 0.75f, -1, IllegalArgumentException.class)*/
 
                 // 3.13) concurrencyLevel = 0, eccezione attesa; test fallito
                 /*Arguments.of(true, 100, 100, 0.75f, 0, IllegalArgumentException.class)*/
+
+                // CM-1: size negativo -> deve essere corretto a 500; aggiunto a seguito di Jacoco
+                Arguments.of(true, 100, -1, 0.75f, 1, null),
+
+                // CM-2: max negativo -> deve essere corretto a Integer.MAX_VALUE, aggiunto a seguito di Jacoco
+                Arguments.of(true, -1, 100, 0.75f, 1, null)
         );
     }
 

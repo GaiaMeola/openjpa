@@ -111,9 +111,13 @@
             ${maven.multiModuleProjectDirectory}/jacoco/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
         <!-- addition by GAIA, to run JACOCO -->
+
         <!-- addition by GAIA to run EVOSUITE -->
         <evosuiteVersion>1.2.0</evosuiteVersion>
         <!-- addition by GAIA to run EVOSUITE -->
+        <!-- addition by GAIA to run jacoco -->
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <!-- addition by GAIA to run jacoco -->
     </properties>
 
     <licenses>
@@ -415,6 +419,7 @@
             </build>
         </profile>
 
+
         <!-- addition by Gaia to run JACOCO -->
         <profile>
             <id>coverage</id>
@@ -423,9 +428,11 @@
             </activation>
             <build>
                 <plugins>
+                    <!--
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.13</version>
                         <executions>
                             <execution>
                                 <id>prepare-agent</id>
@@ -433,8 +440,16 @@
                                     <goal>prepare-agent</goal>
                                 </goals>
                             </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
                         </executions>
                     </plugin>
+                    -->
                 </plugins>
             </build>
         </profile>

@@ -84,4 +84,18 @@ public class Utils {
     public static ClassLoader nullClassLoader() {
         return null;
     }
+
+    // =======================
+    // ARRAY DI TIPI PRIMITIVI
+    // =======================
+
+    /** Array monodimensionale di tipo primitivo (es. int[]) */
+    public static String validPrimitiveArray() {
+        return "int[]";
+    }
+
+    /** Array multidimensionale di tipo primitivo (es. boolean[][]) */
+    public static String validPrimitiveMultiArray() {
+        return "boolean[][]";
+    }
 }

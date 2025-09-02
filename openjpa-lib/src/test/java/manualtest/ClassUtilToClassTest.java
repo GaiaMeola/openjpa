@@ -45,7 +45,10 @@ class ClassUtilToClassTest {
                 //test 4.3.9; test passato
                 Arguments.of(InputCategory.INVALID_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.invalidClassLoader(), null, Exception.class),
                 //test 4.3.10; test passato
-                Arguments.of(InputCategory.NULL_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.nullClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null)
+                Arguments.of(InputCategory.NULL_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.nullClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null),
+                // ===== ARRAY DI TIPI PRIMITIVI ===== ---> aggiunti per JaCoCo
+                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveArray(), Utils.resolveFalse(), Utils.validClassLoader(), int[].class, null), // TC-1
+                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveMultiArray(), Utils.resolveFalse(), Utils.validClassLoader(), boolean[][].class, null) // TC-2
         );
     }
 
@@ -59,17 +62,15 @@ class ClassUtilToClassTest {
                      Class<?> expectedClass,
                      Class<? extends Exception> expectedException) {
 
-        ClassLoader effectiveLoader = loader != null ? loader : Thread.currentThread().getContextClassLoader();
-
         if (expectedException != null) {
             assertThrows(expectedException,
-                    () -> ClassUtil.toClass(str, resolve, effectiveLoader),
+                    () -> ClassUtil.toClass(str, resolve, loader),
                     () -> "Unexpected exception for category " + category + " with input: " + str);
             return;
         }
 
         // Caso normale: verifico che il risultato sia quello atteso
-        Class<?> result = ClassUtil.toClass(str, resolve, effectiveLoader);
+        Class<?> result = ClassUtil.toClass(str, resolve, loader);
         assertEquals(expectedClass, result,
                 () -> "Unexpected result for category " + category + " with input: " + str);
     }

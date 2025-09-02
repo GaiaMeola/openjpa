@@ -42,7 +42,12 @@ class ClassUtilGetPackageNameStringTest {
 //
 //                // ===== STRINGHE NULLE =====
 //                // 4.5.7) Null; test passato
-                Arguments.of(InputCategory.NULL, Utils.nullString(), null, null)
+                Arguments.of(InputCategory.NULL, Utils.nullString(), null, null),
+
+                //Aggiunti i test a seguito da JaCoCo
+                Arguments.of(InputCategory.VALID, Utils.validPrimitiveArray(), "", null),         // GP-1
+                Arguments.of(InputCategory.VALID, Utils.validPrimitiveMultiArray(), "", null),    // GP-2
+                Arguments.of(InputCategory.VALID, "[Ljava.lang.String;", "java.lang", null)       // GP-3
         );
     }
 

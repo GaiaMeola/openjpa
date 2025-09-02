@@ -2,6 +2,7 @@ package manualtest;
 
 import costumutils.Utils;
 import org.apache.openjpa.lib.util.ClassUtil;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,7 +43,16 @@ class ClassUtilGetClassNameStringTest {
 
                 // ===== STRINGHE NULLE =====
                 // 4.4.7) Null; test passato
-                Arguments.of(InputCategory.NULL, Utils.nullString(), null, null)
+                Arguments.of(InputCategory.NULL, Utils.nullString(), null, null),
+
+                // ===== ARRAY DI TIPI PRIMITIVI ===== ---> aggiunti per JaCoCo
+                Arguments.of(InputCategory.VALID, Utils.validPrimitiveArray(), "int[]", null),         // GC-1
+                Arguments.of(InputCategory.VALID, Utils.validPrimitiveMultiArray(), "boolean[][]", null), // GC-2
+                Arguments.of(InputCategory.VALID, "[I", "int[]", null),             // array monodim primitivo in notazione interna
+                Arguments.of(InputCategory.VALID, "[[Z", "boolean[][]", null),     // array multidim primitivo in notazione interna
+                Arguments.of(InputCategory.VALID, "[Ljava.lang.String;", "String[]", null), // array oggetto in notazione interna
+                // Array di oggetti in notazione interna senza ';'
+                Arguments.of(InputCategory.VALID, "[Ljava.lang.String", "String[]", null)
         );
     }
 

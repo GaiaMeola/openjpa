@@ -98,8 +98,9 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>7.5</version>
-            <scope>compile</scope>
+            <scope>test</scope>
         </dependency>
+        <!-- modified by Gaia prima ci stava compile -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -129,6 +130,56 @@
 
     <build>
         <plugins>
+            <!-- addition by GAIA to run PIT -->
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.16.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+
+                    <targetClasses>
+                        <param>org.apache.openjpa.util.CacheMap</param>
+                    </targetClasses>
+
+                    <targetTests>
+                        <param>manualtest.*</param>
+                    </targetTests>
+
+                    <!-- Report -->
+                    <outputFormats>
+                        <param>HTML</param>
+                    </outputFormats>
+
+                    <!-- Mutatori scelti -->
+                    <mutators>
+                        <mutator>CONDITIONALS_BOUNDARY</mutator>
+                        <mutator>INCREMENTS</mutator>
+                        <mutator>INVERT_NEGS</mutator>
+                        <mutator>MATH</mutator>
+                        <mutator>NEGATE_CONDITIONALS</mutator>
+                        <mutator>REMOVE_CONDITIONALS_EQUAL_IF</mutator>
+                        <mutator>REMOVE_CONDITIONALS_ORDER_IF</mutator>
+                        <mutator>TRUE_RETURNS</mutator>
+                        <mutator>FALSE_RETURNS</mutator>
+                        <mutator>PRIMITIVE_RETURNS</mutator>
+                    </mutators>
+
+                    <!-- Configurazione di runtime -->
+                    <threads>2</threads>
+                    <verbose>true</verbose>
+                    <timeoutFactor>2</timeoutFactor>
+                    <timeoutConstant>120000</timeoutConstant>
+                    <avoidCallsTo>java.lang.System</avoidCallsTo>
+                </configuration>
+            </plugin>
+            <!-- addition by GAIA to run PIT -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>javacc-maven-plugin</artifactId>
@@ -218,10 +269,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
+                <!-- to run PIT
                 <configuration>
-                    <!--suppress UnresolvedMavenProperty -->
+                    suppress UnresolvedMavenProperty
                     <argLine>${argLine}</argLine>
                 </configuration>
+                -->
             </plugin>
             <!-- addition by Gaia to run JACOCO -->
         </plugins>

@@ -67,6 +67,29 @@ class CacheMapConstructorTest {
         );
     }
 
+    //aggiunti per PIT --> per uccidere le mutazioni sopravvissute
+    @Test
+    void maxZeroShouldRemainZero() {
+        CacheMap cm = new CacheMap(true, 0, 100, 0.75f, 1);
+        assertNotNull(cm, "CacheMap instance should not be null");
+        assertEquals(0, cm.getCacheSize(), "max = 0 deve rimanere invariato");
+    }
+
+    @Test
+    void maxPositiveShouldRemainPositive() {
+        CacheMap cm = new CacheMap(true, 50, 100, 0.75f, 1);
+        assertNotNull(cm, "CacheMap instance should not be null");
+        assertEquals(50, cm.getCacheSize(), "max positivo deve rimanere invariato");
+    }
+
+    @Test
+    void maxNegativeShouldBecomeUnlimited() {
+        CacheMap cm = new CacheMap(true, -1, 100, 0.75f, 1);
+        assertNotNull(cm, "CacheMap instance should not be null");
+        assertEquals(-1, cm.getCacheSize(), "max negativo deve diventare illimitato (-1)");
+    }
+
+
     @ParameterizedTest(name = "Test {index}: lru={0}, max={1}, size={2}, load={3}, concurrency={4}")
     @MethodSource("data")
     @Timeout(value = 5)

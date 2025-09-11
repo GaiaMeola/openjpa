@@ -1,6 +1,7 @@
 package manualtest;
 
 import org.apache.openjpa.util.CacheMap;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.function.Executable;
@@ -100,6 +101,16 @@ class CacheMapGetTest {
         } else {
             Object result = cache.get(keyUnderTest);
             assertEquals(expectedOutput, result, "Unexpected get() result");
+
+            if (keyCategory == KeyCategory.NOT_PRESENT) {
+                Field cacheMapField = CacheMap.class.getDeclaredField("cacheMap");
+                cacheMapField.setAccessible(true);
+                @SuppressWarnings("unchecked")
+                Map<Object, Object> cacheMapInternal = (Map<Object, Object>) cacheMapField.get(cache);
+
+                assertFalse(cacheMapInternal.containsKey(keyUnderTest),
+                        "Chiave assente non deve essere inserita con valore null in cacheMap");
+            }
 
             if (keyCategory == KeyCategory.IN_SOFT) {
                 // Verifica che la chiave sia stata spostata in cacheMap

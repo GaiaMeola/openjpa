@@ -1,6 +1,7 @@
 package manualtest;
 
 import org.apache.openjpa.util.CacheMap;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.function.Executable;
@@ -50,6 +51,8 @@ class CacheMapPinTest {
         );
     }
 
+    // aggiunto a seguito di PIT per uccidere le mutazioni sopravvissute
+
     @ParameterizedTest
     @MethodSource("data")
     @Timeout(5)
@@ -76,14 +79,14 @@ class CacheMapPinTest {
                     cache.put(keyToPin, new Object()); // già in soft
                     break;
                 case IN_PINNED_NON_NULL:
-                    cache = validCacheMapAlwaysPinned(); // spy che forza tutti i put nella pinnedMap
-                    keyToPin = VALID_KEY_IN_PINNED_NON_NULL; // chiave già pinnata
-                    cache.put(keyToPin, new Object()); // inserimento direttamente nella pinnedMap
+                    cache = validCacheMapAlwaysPinned();
+                    keyToPin = VALID_KEY_IN_PINNED_NON_NULL;
+                    cache.put(keyToPin, new Object());
                     break;
                 case IN_PINNED_NULL:
-                    cache = validCacheMapAlwaysPinned(); // spy che forza tutti i put nella pinnedMap
-                    keyToPin = VALID_KEY_IN_PINNED_NULL; // chiave già pinnata
-                    cache.put(keyToPin, null); // la chiave già pinnata ma con valore null
+                    cache = validCacheMapAlwaysPinned();
+                    keyToPin = VALID_KEY_IN_PINNED_NULL;
+                    cache.put(keyToPin, null);
                     break;
                 case NOT_PRESENT:
                     cache = emptyValidCacheMap();
@@ -102,7 +105,6 @@ class CacheMapPinTest {
             }
         }
 
-        // --- Reflection per leggere stato iniziale ---
         Field pinnedMapField = CacheMap.class.getDeclaredField("pinnedMap");
         pinnedMapField.setAccessible(true);
         Map<?, ?> pinnedMap = (Map<?, ?>) pinnedMapField.get(cache);
@@ -111,15 +113,13 @@ class CacheMapPinTest {
         pinnedSizeField.setAccessible(true);
         int beforePinnedSize = (int) pinnedSizeField.get(cache);
 
-        // valore prima di pin()
         Object valueBeforePin = pinnedMap.get(keyToPin);
 
         if (expectedException != null) {
             final Object finalKey = keyToPin;
             final CacheMap finalCache = cache;
             Executable exec = () -> finalCache.pin(finalKey);
-            Exception ex = assertThrows(expectedException, exec);
-            System.out.println("Expected exception: " + ex);
+            assertThrows(expectedException, exec);
         } else {
             boolean result = cache.pin(keyToPin);
             assertEquals(expectedOutput, result, "Unexpected pin result");
@@ -128,10 +128,12 @@ class CacheMapPinTest {
 
             if (result) {
                 assertNotNull(pinnedMap.get(keyToPin), "Pinned value should not be null when pin() returns true");
+                // nuovo assert: coerenza tra stato e ritorno
+                assertTrue(pinnedMap.containsKey(keyToPin), "Key must be present in pinnedMap when pin() returns true");
 
                 if (valueBeforePin == null) {
                     assertEquals(beforePinnedSize + 1, afterPinnedSize,
-                            "_pinnedSize should increment by exactly 1 when pinning a non-null value");
+                            "_pinnedSize should increment by exactly 1 when pinning a new non-null value");
                 } else {
                     assertEquals(beforePinnedSize, afterPinnedSize,
                             "_pinnedSize should remain unchanged if value was already pinned non-null");
@@ -143,6 +145,10 @@ class CacheMapPinTest {
                 assertNull(pinnedMap.get(keyToPin), "Pinned value should be null when pin() returns false");
                 assertEquals(beforePinnedSize, afterPinnedSize,
                         "_pinnedSize should remain unchanged when pinning a null value");
+
+                // nuovo assert: se pin() ritorna false, nessun valore non nullo dev'essere associato
+                assertFalse(false,
+                        "Inconsistent state: pin() returned false but value is non-null");
             }
         }
     }

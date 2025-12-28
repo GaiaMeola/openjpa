@@ -97,13 +97,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>6.0.0-M1</version>
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
-            <version>6.0.0-M1</version>
+            <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
         <!-- addition by GAIA to run EVOSUITE -->
@@ -261,6 +261,56 @@ openjpa.enhancer.revision=${pcenhancer.git.revision}${uncommitted.changes}
                         </configuration>
                     </plugin>
                     <!-- addition by Gaia to run JACOCO -->
+                    <!-- addition by GAIA to run PIT -->
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <version>1.16.0</version>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.pitest</groupId>
+                                <artifactId>pitest-junit5-plugin</artifactId>
+                                <version>1.2.1</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+
+                            <targetClasses>
+                                <param>import org.apache.openjpa.lib.util.ClassUtil;</param>
+                            </targetClasses>
+
+                            <targetTests>
+                                <param>manualtest.*</param>
+                            </targetTests>
+
+                            <!-- Report -->
+                            <outputFormats>
+                                <param>HTML</param>
+                            </outputFormats>
+
+                            <!-- Mutatori scelti -->
+                            <mutators>
+                                <mutator>CONDITIONALS_BOUNDARY</mutator>
+                                <mutator>INCREMENTS</mutator>
+                                <mutator>INVERT_NEGS</mutator>
+                                <mutator>MATH</mutator>
+                                <mutator>NEGATE_CONDITIONALS</mutator>
+                                <mutator>REMOVE_CONDITIONALS_EQUAL_IF</mutator>
+                                <mutator>REMOVE_CONDITIONALS_ORDER_IF</mutator>
+                                <mutator>TRUE_RETURNS</mutator>
+                                <mutator>FALSE_RETURNS</mutator>
+                                <mutator>PRIMITIVE_RETURNS</mutator>
+                            </mutators>
+
+                            <!-- Configurazione di runtime -->
+                            <threads>2</threads>
+                            <verbose>true</verbose>
+                            <timeoutFactor>2</timeoutFactor>
+                            <timeoutConstant>120000</timeoutConstant>
+                            <avoidCallsTo>java.lang.System</avoidCallsTo>
+                        </configuration>
+                    </plugin>
+                    <!-- addition by GAIA to run PIT -->
                 </plugins>
             </build>
         </profile>

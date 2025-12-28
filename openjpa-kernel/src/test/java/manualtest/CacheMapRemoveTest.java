@@ -151,16 +151,27 @@ class CacheMapRemoveTest {
 
         assertTrue(pinnedMapInternal.containsKey(key),
                 "Pinned key should remain in pinnedMap after remove()");
+
         if (shouldDecrement) {
-            assertNull(pinnedMapInternal.get(key), "Pinned key value should become null after remove()");
+            // Caso IN_PINNED_NON_NULL → il valore precedente era non null
+            assertNull(pinnedMapInternal.get(key),
+                    "Pinned key value should become null after remove()");
+        } else {
+            // Caso IN_PINNED_NULL → il valore era già null
+            assertNull(pinnedMapInternal.get(key),
+                    "Pinned key should stay null after remove()");
         }
 
         Field pinnedSizeField = CacheMap.class.getDeclaredField("_pinnedSize");
         pinnedSizeField.setAccessible(true);
         int afterSize = (int) pinnedSizeField.get(cache);
 
-        int expectedSize = shouldDecrement ? beforeSize - 1 : beforeSize;
-        assertEquals(expectedSize, afterSize,
-                "_pinnedSize check failed after remove() for key " + key);
+        if (shouldDecrement) {
+            assertEquals(beforeSize - 1, afterSize,
+                    "_pinnedSize must decrement when removing pinned non-null value");
+        } else {
+            assertEquals(beforeSize, afterSize,
+                    "_pinnedSize must not decrement when removing pinned null value");
+        }
     }
 }

@@ -88,12 +88,14 @@
         </dependency>
 
         <!-- addition by GAIA to run EVOSUITE -->
-        <!-- <dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <version>4.11.0</version>
             <scope>test</scope>
-        </dependency> -->
+        </dependency>
+
+
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -107,12 +109,14 @@
         </dependency>
 
         <!-- addition by GAIA to run EVOSUITE -->
+        <!--
         <dependency>
             <groupId>org.evosuite</groupId>
             <artifactId>evosuite-standalone-runtime</artifactId>
             <version>1.2.0</version>
             <scope>test</scope>
         </dependency>
+        disabilitata temporaneamente perché causa errori -->
         <dependency>
             <!--<groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

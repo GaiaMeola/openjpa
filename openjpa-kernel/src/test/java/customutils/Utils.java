@@ -5,7 +5,7 @@ import org.apache.openjpa.util.CacheMap;
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import static org.evosuite.shaded.org.mockito.Mockito.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Utils per costruire istanze valide e invalide di CacheMap

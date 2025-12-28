@@ -36,7 +36,7 @@ jobs:
 
       - name: Run tests
         if: env.RUN_TESTS == 'true'
-        run: mvn -B test -DskipEvoSuite
+        run: mvn -B test
 
       - name: Tests disabled
         if: env.RUN_TESTS != 'true'

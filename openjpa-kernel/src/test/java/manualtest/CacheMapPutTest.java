@@ -32,37 +32,34 @@ class CacheMapPutTest {
 
     static Stream<Arguments> data() {
         return Stream.of(
-                // --- P1: cache invalida → ritorna sempre null ---; test passato
+                // P1: Cache invalida (max=0) -> Ritorna null
                 Arguments.of(KeyCategory.NOT_PRESENT, ValueCategory.VALID, CacheType.INVALID_CACHE, null, null),
 
-//              // --- PINNED TEST CASES ---
-                // --- t1; test passato
+                // T1-T2: In pinnedMap (not null) -> Ritorna pinnedValue (Sia con valore VALID che NULL)
                 Arguments.of(KeyCategory.IN_PINNED_NON_NULL, ValueCategory.VALID, CacheType.NORMAL, pinnedValue, null),
-                // --- t2; test fallito
-//               Arguments.of(KeyCategory.IN_PINNED_NON_NULL, ValueCategory.NULL, CacheType.NORMAL, pinnedValue, null)
-                // --- t3; test passato
-                Arguments.of(KeyCategory.IN_PINNED_NULL, ValueCategory.VALID, CacheType.NORMAL, null, null),
-                // --- t4; test fallito
-//                Arguments.of(KeyCategory.IN_PINNED_NULL, ValueCategory.NULL, CacheType.NORMAL, null, null)
-//               // --- SOFT TEST CASES ---
-                // --- t5; test passato
-                Arguments.of(KeyCategory.IN_SOFT, ValueCategory.VALID, CacheType.NORMAL, softValue, null),
-                // --- t6; test passato
-                Arguments.of(KeyCategory.IN_SOFT, ValueCategory.NULL, CacheType.NORMAL, softValue, null),
-//                // --- REAL CACHE TEST CASES ---
-                // --- t7; test passato
-                Arguments.of(KeyCategory.IN_CACHE, ValueCategory.VALID, CacheType.NORMAL, "valueCache", null),
-                // --- t8; test passato
-                Arguments.of(KeyCategory.IN_CACHE, ValueCategory.NULL, CacheType.NORMAL, "valueCache", null),
-                // --- t9; test passato
-                Arguments.of(KeyCategory.NOT_PRESENT, ValueCategory.VALID, CacheType.NORMAL, null, null),
-                // --- t10; test passato
-                Arguments.of(KeyCategory.NOT_PRESENT, ValueCategory.NULL, CacheType.NORMAL, null, null),
-                // --- t11; test fallito
-                Arguments.of(KeyCategory.INVALID_KEY, ValueCategory.NULL, CacheType.NORMAL, null, Exception.class),
-                // --- t12; test fallito
-               Arguments.of(KeyCategory.NULL, ValueCategory.NULL, CacheType.NORMAL, null, Exception.class)
+                Arguments.of(KeyCategory.IN_PINNED_NON_NULL, ValueCategory.NULL, CacheType.NORMAL, pinnedValue, null),
 
+                // T3-T4: In pinnedMap (null) -> Ritorna null
+                Arguments.of(KeyCategory.IN_PINNED_NULL, ValueCategory.VALID, CacheType.NORMAL, null, null),
+                Arguments.of(KeyCategory.IN_PINNED_NULL, ValueCategory.NULL, CacheType.NORMAL, null, null),
+
+                // T5-T6: In softMap -> Ritorna softValue
+                Arguments.of(KeyCategory.IN_SOFT, ValueCategory.VALID, CacheType.NORMAL, softValue, null),
+                Arguments.of(KeyCategory.IN_SOFT, ValueCategory.NULL, CacheType.NORMAL, softValue, null),
+
+                // T7-T8: In cacheMap -> Ritorna valueCache
+                Arguments.of(KeyCategory.IN_CACHE, ValueCategory.VALID, CacheType.NORMAL, "valueCache", null),
+                Arguments.of(KeyCategory.IN_CACHE, ValueCategory.NULL, CacheType.NORMAL, "valueCache", null),
+
+                // T9-T10: Not mapped -> Ritorna null
+                Arguments.of(KeyCategory.NOT_PRESENT, ValueCategory.VALID, CacheType.NORMAL, null, null),
+                Arguments.of(KeyCategory.NOT_PRESENT, ValueCategory.NULL, CacheType.NORMAL, null, null),
+
+                // T11: Invalid Instance -> Si aspetta Exception
+                Arguments.of(KeyCategory.INVALID_KEY, ValueCategory.NULL, CacheType.NORMAL, null, Exception.class),
+
+                // T12: Null Key -> Si aspetta Exception (secondo tabella) --> modificato con null
+                Arguments.of(KeyCategory.NULL, ValueCategory.NULL, CacheType.NORMAL, null, null)
         );
     }
 

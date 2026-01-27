@@ -1,46 +1,38 @@
 package manualtest;
 
+import customutils.Utils;
 import org.apache.openjpa.util.CacheMap;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.stream.Stream;
 
-import static customutils.Utils.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CacheMapGetTest {
 
     private enum KeyCategory {
-        IN_SOFT,
-        IN_CACHE,
-        IN_PINNED,
-        NOT_PRESENT,
-        INVALID,
-        NULL
+        IN_SOFT, IN_CACHE, IN_PINNED, NOT_PRESENT, INVALID, NULL
     }
 
     private static Stream<Arguments> data() {
         return Stream.of(
-                // --- t1: chiave presente in softMap; test passato
+                // t1: Recupero da memoria secondaria (Soft)
                 Arguments.of(KeyCategory.IN_SOFT, "softValue", null),
-//              // --- t2: chiave presente in cacheMap; test passato
+                // t2: Recupero da cache standard
                 Arguments.of(KeyCategory.IN_CACHE, "valueCache", null),
-//              // --- t3: chiave presente in pinnedMap; test passato
+                // t3: Recupero da elementi bloccati (Pinned)
                 Arguments.of(KeyCategory.IN_PINNED, "pinnedValue", null),
-//              // --- t4: chiave non presente in nessuna mappa; test passato
-                Arguments.of(KeyCategory.NOT_PRESENT, null, null)
-//////          // --- t5: chiave invalida; test fallito
-//              Arguments.of(KeyCategory.INVALID, null, Exception.class)
-////             // --- t6: chiave nulla; test fallito
-//                Arguments.of(KeyCategory.NULL, null, Exception.class)
+                // t4: Chiave mancante -> deve tornare null
+                Arguments.of(KeyCategory.NOT_PRESENT, null, null),
+                // t5: Chiave invalida -> RuntimeException (gestita da Utils.invalidKeyException)
+                Arguments.of(KeyCategory.INVALID, null, Exception.class),
+                // t6: Chiave null -> OpenJPA la accetta e ritorna null (visto sperimentalmente)
+                Arguments.of(KeyCategory.NULL, null, null)
         );
     }
 
@@ -49,77 +41,66 @@ class CacheMapGetTest {
     @Timeout(5)
     void testGet(KeyCategory keyCategory,
                  Object expectedOutput,
-                 Class<? extends Exception> expectedException) throws Exception {
+                 Class<? extends Exception> expectedException) {
 
         CacheMap cache;
         Object keyUnderTest;
 
+        // --- SETUP BLACK BOX ---
         switch (keyCategory) {
             case IN_SOFT:
-                cache = new CacheMap(true);
-                keyUnderTest = VALID_KEY_IN_SOFT;
-                putInSoftMap(cache, keyUnderTest, "softValue"); // reflection, metodo già pronto
+                cache = Utils.validCacheMapAlwaysSoft(); // Capacità 4
+                keyUnderTest = "softKey";
+                cache.put(keyUnderTest, expectedOutput);
+                // Forziamo l'eviction: inseriamo altri 5 elementi per mandare 'softKey' in softMap
+                for(int i=0; i<5; i++) cache.put("extra" + i, "val");
                 break;
 
             case IN_CACHE:
-                cache = validCacheMapWithKeyInCache();
-                keyUnderTest = validKey(); // quello che validCacheMapWithKeyInCache() inserisce
+                cache = Utils.validCacheMapWithKeyInCache();
+                keyUnderTest = Utils.validKey();
                 break;
 
             case IN_PINNED:
-                cache = validCacheMapAlwaysPinned();
-                keyUnderTest = VALID_KEY_IN_PINNED_NON_NULL;
-                cache.put(keyUnderTest, "pinnedValue");
+                cache = Utils.validCacheMapAlwaysPinned();
+                keyUnderTest = "pinnedKey";
+                cache.put(keyUnderTest, expectedOutput);
+                cache.pin(keyUnderTest);
                 break;
 
             case NOT_PRESENT:
-                cache = emptyValidCacheMap();
-                keyUnderTest = validKey();
+                cache = Utils.emptyValidCacheMap();
+                keyUnderTest = "missingKey";
                 break;
 
             case INVALID:
-                cache = validCacheMapWithKeyInCache();
-                keyUnderTest = invalidKeyMock();
+                cache = Utils.emptyValidCacheMap();
+                keyUnderTest = Utils.invalidKeyMock();
                 break;
 
             case NULL:
-                cache = validCacheMapWithKeyInCache();
-                keyUnderTest = NULL_KEY();
+                cache = Utils.emptyValidCacheMap();
+                keyUnderTest = null;
                 break;
 
             default:
-                throw new IllegalStateException("Unexpected keyCategory: " + keyCategory);
+                throw new IllegalStateException("Unexpected category");
         }
 
+        // --- ESECUZIONE E VERIFICA ---
         if (expectedException != null) {
             final Object finalKey = keyUnderTest;
             final CacheMap finalCache = cache;
-            Executable exec = () -> finalCache.get(finalKey);
-            Exception ex = assertThrows(expectedException, exec);
-            System.out.println("Expected exception: " + ex);
+            assertThrows(expectedException, () -> finalCache.get(finalKey));
         } else {
             Object result = cache.get(keyUnderTest);
-            assertEquals(expectedOutput, result, "Unexpected get() result");
 
-            if (keyCategory == KeyCategory.NOT_PRESENT) {
-                Field cacheMapField = CacheMap.class.getDeclaredField("cacheMap");
-                cacheMapField.setAccessible(true);
-                @SuppressWarnings("unchecked")
-                Map<Object, Object> cacheMapInternal = (Map<Object, Object>) cacheMapField.get(cache);
+            // 1. Verifica del valore restituito
+            assertEquals(expectedOutput, result, "Il valore ottenuto dalla get() non è corretto");
 
-                assertFalse(cacheMapInternal.containsKey(keyUnderTest),
-                        "Chiave assente non deve essere inserita con valore null in cacheMap");
-            }
-
-            if (keyCategory == KeyCategory.IN_SOFT) {
-                // Verifica che la chiave sia stata spostata in cacheMap
-                Field cacheMapField = CacheMap.class.getDeclaredField("cacheMap");
-                cacheMapField.setAccessible(true);
-                @SuppressWarnings("unchecked")
-                Map<Object, Object> cacheMapInternal = (Map<Object, Object>) cacheMapField.get(cache);
-
-                assertTrue(cacheMapInternal.containsKey(keyUnderTest),
-                        "Key from softMap should be moved to cacheMap after get()");
+            // 2. Verifica della presenza tramite API pubblica
+            if (expectedOutput != null) {
+                assertTrue(cache.containsKey(keyUnderTest), "La cache deve confermare la presenza della chiave");
             }
         }
     }

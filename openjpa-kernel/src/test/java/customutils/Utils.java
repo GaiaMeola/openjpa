@@ -25,10 +25,12 @@ public class Utils {
 
     /** Chiave invalida: oggetto reale con equals() che lancia eccezione */
     public static Object invalidKeyMock() {
-        Object mockKey = mock(Object.class);
-        // Lanciamo eccezione su hashCode perché put() chiama hashCode() per trovare il bucket
-        when(mockKey.hashCode()).thenThrow(new RuntimeException("Invalid key hashCode() called"));
-        return mockKey;
+        return new Object() {
+            @Override
+            public int hashCode() {
+                throw new RuntimeException("Simulated Bad Key");
+            }
+        };
     }
 
     public static Object NULL_KEY() {

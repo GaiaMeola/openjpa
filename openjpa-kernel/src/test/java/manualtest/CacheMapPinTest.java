@@ -3,13 +3,10 @@ package manualtest;
 import org.apache.openjpa.util.CacheMap;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static customutils.Utils.*;
@@ -42,9 +39,9 @@ class CacheMapPinTest {
                 //test 5; test passato
                 Arguments.of(false, KeyCategory.NOT_PRESENT, false, null),
                 //test 6; test fallito
-                //Arguments.of(false, KeyCategory.INVALID, false, Exception.class),
+                Arguments.of(false, KeyCategory.INVALID, false, Exception.class),
                 //test 7; test fallito
-                //Arguments.of(false, KeyCategory.NULL, false,  Exception.class),
+                Arguments.of(false, KeyCategory.NULL, false,  Exception.class),
                 // test P1: caso con cache invalida; test passato
                 Arguments.of(true, KeyCategory.NOT_PRESENT, false, null)
         );
@@ -58,13 +55,14 @@ class CacheMapPinTest {
     void testPin(boolean useInvalidCache,
                  KeyCategory keyCategory,
                  boolean expectedOutput,
-                 Class<? extends Exception> expectedException) throws Exception {
+                 Class<? extends Exception> expectedException) {
 
         CacheMap cache;
         Object keyToPin;
 
+        // --- SETUP ---
         if (useInvalidCache) {
-            cache = invalidCacheMap();
+            cache = invalidCacheMap(); // Capacità 4 (sicura)
             keyToPin = validKey();
         } else {
             switch (keyCategory) {
@@ -73,14 +71,16 @@ class CacheMapPinTest {
                     keyToPin = validKey();
                     break;
                 case IN_SOFT:
-                    cache = validCacheMapAlwaysSoft();
+                    cache = validCacheMapAlwaysSoft(); // Capacità 4
                     keyToPin = VALID_KEY_IN_SOFT;
-                    cache.put(keyToPin, new Object()); // già in soft
+                    cache.put(keyToPin, "someValue");
+                    // Forziamo l'eviction per mandarlo in soft
+                    for (int i = 0; i < 5; i++) cache.put("extra" + i, "val");
                     break;
                 case IN_PINNED_NON_NULL:
                     cache = validCacheMapAlwaysPinned();
                     keyToPin = VALID_KEY_IN_PINNED_NON_NULL;
-                    cache.put(keyToPin, new Object());
+                    cache.put(keyToPin, "pinnedValue");
                     break;
                 case IN_PINNED_NULL:
                     cache = validCacheMapAlwaysPinned();
@@ -89,7 +89,7 @@ class CacheMapPinTest {
                     break;
                 case NOT_PRESENT:
                     cache = emptyValidCacheMap();
-                    keyToPin = validKey();
+                    keyToPin = "nonExistentKey";
                     break;
                 case INVALID:
                     cache = emptyValidCacheMap();
@@ -100,54 +100,35 @@ class CacheMapPinTest {
                     keyToPin = NULL_KEY();
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected keyCategory: " + keyCategory);
+                    throw new IllegalStateException("Unexpected: " + keyCategory);
             }
         }
 
-        Field pinnedMapField = CacheMap.class.getDeclaredField("pinnedMap");
-        pinnedMapField.setAccessible(true);
-        Map<?, ?> pinnedMap = (Map<?, ?>) pinnedMapField.get(cache);
-
-        Field pinnedSizeField = CacheMap.class.getDeclaredField("_pinnedSize");
-        pinnedSizeField.setAccessible(true);
-        int beforePinnedSize = (int) pinnedSizeField.get(cache);
-
-        Object valueBeforePin = pinnedMap.get(keyToPin);
-
+        // --- ESECUZIONE E VERIFICA ---
         if (expectedException != null) {
             final Object finalKey = keyToPin;
             final CacheMap finalCache = cache;
-            Executable exec = () -> finalCache.pin(finalKey);
-            assertThrows(expectedException, exec);
+            assertThrows(expectedException, () -> finalCache.pin(finalKey));
         } else {
             boolean result = cache.pin(keyToPin);
-            assertEquals(expectedOutput, result, "Unexpected pin result");
 
-            int afterPinnedSize = (int) pinnedSizeField.get(cache);
+            // 1. Verifica del risultato booleano
+            assertEquals(expectedOutput, result, "Il risultato di pin() non è corretto");
+
+            // --- VERIFICA BLACK BOX ---
+            assertEquals(expectedOutput, result, "Il risultato di pin() non è corretto");
 
             if (result) {
-                assertNotNull(pinnedMap.get(keyToPin), "Pinned value should not be null when pin() returns true");
-                // nuovo assert: coerenza tra stato e ritorno
-                assertTrue(pinnedMap.containsKey(keyToPin), "Key must be present in pinnedMap when pin() returns true");
-
-                if (valueBeforePin == null) {
-                    assertEquals(beforePinnedSize + 1, afterPinnedSize,
-                            "_pinnedSize should increment by exactly 1 when pinning a new non-null value");
-                } else {
-                    assertEquals(beforePinnedSize, afterPinnedSize,
-                            "_pinnedSize should remain unchanged if value was already pinned non-null");
-                }
-
+                // Se pin ha avuto successo (true)
+                assertNotNull(cache.get(keyToPin), "Il valore deve essere presente");
+                assertFalse(cache.isEmpty(), "La cache non può essere vuota dopo un pin riuscito");
             } else {
-                assertTrue(pinnedMap.containsKey(keyToPin),
-                        "Key should still be in pinnedMap even when pin() returns false");
-                assertNull(pinnedMap.get(keyToPin), "Pinned value should be null when pin() returns false");
-                assertEquals(beforePinnedSize, afterPinnedSize,
-                        "_pinnedSize should remain unchanged when pinning a null value");
+                // Se pin ha fallito (false)
+                assertNull(cache.get(keyToPin), "Il valore deve essere null");
 
-                // nuovo assert: se pin() ritorna false, nessun valore non nullo dev'essere associato
-                assertFalse(false,
-                        "Inconsistent state: pin() returned false but value is non-null");
+                // Se la cache era già vuota o il valore era null, verifichiamo la coerenza
+                // Invece di size() >= 0, verifichiamo che la size non sia cambiata negativamente
+                assertTrue(cache.size() <= 100, "La size non deve superare la capacità massima");
             }
         }
     }

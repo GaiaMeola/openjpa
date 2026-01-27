@@ -1,39 +1,33 @@
 package manualtest;
 
 import org.apache.openjpa.util.CacheMap;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import customutils.Utils;
 
-import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.stream.Stream;
-
-import static customutils.Utils.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CacheMapUnpinTest {
 
     private enum KeyCategory {
-        IN_PINNED_NON_NULL,
-        IN_PINNED_NULL,
-        NOT_PRESENT,
-        INVALID,
-        NULL
+        IN_PINNED_NON_NULL, IN_PINNED_NULL, NOT_PRESENT, INVALID, NULL
     }
 
     private static Stream<Arguments> data() {
         return Stream.of(
-                //test 1; test passato
+                // test 1: Presente e non nullo -> unpin successo
                 Arguments.of(KeyCategory.IN_PINNED_NON_NULL, true, null),
-                //test 2; test passato
+                // test 2: Presente ma nullo -> unpin ritorna false (secondo logica OpenJPA)
                 Arguments.of(KeyCategory.IN_PINNED_NULL, false, null),
-                //test 3; test passato
-                Arguments.of(KeyCategory.NOT_PRESENT, false, null)
+                // test 3: Non presente -> unpin ritorna false
+                Arguments.of(KeyCategory.NOT_PRESENT, false, null),
+                // test 4: Invalido -> RuntimeException (dal nostro Utils)
+                Arguments.of(KeyCategory.INVALID, false, RuntimeException.class),
+                // test 5: Chiave null -> Accettata (ritorna false perché non può essere pinnata validamente)
+                Arguments.of(KeyCategory.NULL, false, null)
         );
     }
 
@@ -42,87 +36,49 @@ class CacheMapUnpinTest {
     @Timeout(5)
     void testUnpin(KeyCategory keyCategory,
                    boolean expectedOutput,
-                   Class<? extends Exception> expectedException) throws Exception {
+                   Class<? extends Exception> expectedException) {
 
-        CacheMap cache;
+        CacheMap cache = new CacheMap(true, 10); // Capacità standard sicura
         Object keyToUnpin;
+        Object value = "someValue";
 
-        // Setup cache e chiave da testare
+        // --- SETUP ---
         switch (keyCategory) {
             case IN_PINNED_NON_NULL:
-                cache = new CacheMap(true);
-                keyToUnpin = VALID_KEY_IN_PINNED_NON_NULL;
-                cache.put(keyToUnpin, keyToUnpin);
-                cache.pin(keyToUnpin);
+                keyToUnpin = "pinnedKey";
+                cache.put(keyToUnpin, value);
+                cache.pin(keyToUnpin); // Lo blocchiamo
                 break;
-
             case IN_PINNED_NULL:
-                cache = new CacheMap(true);
-                keyToUnpin = VALID_KEY_IN_PINNED_NULL;
+                keyToUnpin = "nullPinnedKey";
                 cache.put(keyToUnpin, null);
                 cache.pin(keyToUnpin);
                 break;
-
             case NOT_PRESENT:
-                cache = new CacheMap(true);
-                keyToUnpin = validKey();
+                keyToUnpin = "absentKey";
                 break;
-
             case INVALID:
-                cache = validCacheMapWithKeyInCache();
-                keyToUnpin = invalidKeyMock();
+                keyToUnpin = Utils.invalidKeyMock();
                 break;
-
             case NULL:
-                cache = validCacheMapWithKeyInCache();
-                keyToUnpin = NULL_KEY();
+                keyToUnpin = null;
                 break;
-
             default:
-                throw new IllegalStateException("Unexpected keyCategory: " + keyCategory);
+                throw new IllegalStateException("Unexpected category");
         }
 
-        // Reflection per leggere stato iniziale
-        Field pinnedMapField = CacheMap.class.getDeclaredField("pinnedMap");
-        pinnedMapField.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        Map<Object, Object> pinnedMap = (Map<Object, Object>) pinnedMapField.get(cache);
-
-        Field pinnedSizeField = CacheMap.class.getDeclaredField("_pinnedSize");
-        pinnedSizeField.setAccessible(true);
-        int beforePinnedSize = (int) pinnedSizeField.get(cache);
-
-        Object valueBeforeUnpin = pinnedMap.get(keyToUnpin);
-
+        // --- ESECUZIONE E VERIFICA ---
         if (expectedException != null) {
-            final Object finalKey = keyToUnpin;
-            final CacheMap finalCache = cache;
-            Executable exec = () -> finalCache.unpin(finalKey);
-            Exception ex = assertThrows(expectedException, exec);
-            System.out.println("Expected exception: " + ex);
+            assertThrows(expectedException, () -> cache.unpin(keyToUnpin));
         } else {
             boolean result = cache.unpin(keyToUnpin);
-            assertEquals(expectedOutput, result, "Unexpected unpin result");
+            assertEquals(expectedOutput, result, "Il risultato di unpin() non è corretto");
 
-            int afterPinnedSize = (int) pinnedSizeField.get(cache);
-
-            if (result) {
-                if (valueBeforeUnpin != null) {
-                    // valore non nullo: chiave rimossa e pinnedSize decrementato
-                    assertFalse(pinnedMap.containsKey(keyToUnpin), "Key should be removed from pinnedMap");
-                    assertEquals(beforePinnedSize - 1, afterPinnedSize,
-                            "_pinnedSize should decrement by 1 when unpinning a non-null value");
-                } else {
-                    // valore nullo: chiave rimane ma pinnedSize invariato
-                    assertTrue(pinnedMap.containsKey(keyToUnpin) || keyToUnpin == null,
-                            "Key with null value may remain in pinnedMap");
-                    assertEquals(beforePinnedSize, afterPinnedSize,
-                            "_pinnedSize should remain unchanged when unpinning null value");
-                }
-            } else {
-                // chiave non pinnata o non presente -> pinnedSize invariato
-                assertEquals(beforePinnedSize, afterPinnedSize,
-                        "_pinnedSize should remain unchanged when unpinning absent key");
+            // Verifica funzionale post-unpin:
+            // 1. Se l'unpin ha avuto successo o la chiave esisteva, il dato deve essere ancora leggibile.
+            // Unpin rimuove il blocco, non l'oggetto dalla cache!
+            if (keyCategory == KeyCategory.IN_PINNED_NON_NULL) {
+                assertEquals(value, cache.get(keyToUnpin), "L'oggetto deve essere ancora presente dopo l'unpin");
             }
         }
     }

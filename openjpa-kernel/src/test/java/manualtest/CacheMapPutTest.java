@@ -57,11 +57,11 @@ class CacheMapPutTest {
                 // --- t9; test passato
                 Arguments.of(KeyCategory.NOT_PRESENT, ValueCategory.VALID, CacheType.NORMAL, null, null),
                 // --- t10; test passato
-                Arguments.of(KeyCategory.NOT_PRESENT, ValueCategory.NULL, CacheType.NORMAL, null, null)
+                Arguments.of(KeyCategory.NOT_PRESENT, ValueCategory.NULL, CacheType.NORMAL, null, null),
                 // --- t11; test fallito
-//                Arguments.of(KeyCategory.INVALID_KEY, ValueCategory.NULL, CacheType.NORMAL, null, Exception.class)
+                Arguments.of(KeyCategory.INVALID_KEY, ValueCategory.NULL, CacheType.NORMAL, null, Exception.class),
                 // --- t12; test fallito
-//                Arguments.of(KeyCategory.NULL, ValueCategory.NULL, CacheType.NORMAL, null, Exception.class)
+               Arguments.of(KeyCategory.NULL, ValueCategory.NULL, CacheType.NORMAL, null, Exception.class)
 
         );
     }

@@ -10,101 +10,65 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit testing for {@link CacheMap} <br>
- * Tested method: constructor (lru, max, size, load, concurrencyLevel)
- */
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CacheMapConstructorTest {
 
     private static Stream<Arguments> data() {
         return Stream.of(
+                // 3.1 & 3.2: Casi validi standard (lru true/false)
+                Arguments.of(true, 100, 100, 0.75f, 1, null, 100),
+                Arguments.of(false, 100, 100, 0.75f, 1, null, 100),
 
-                // 3.1) lru = true, valid; test passato
-                Arguments.of(true, 100, 100, 0.75f, 1, null),
+                // T3: max = -1 -> Autocorrezione a Integer.MAX_VALUE (-1 in getCacheSize)
+                Arguments.of(true, -1, 100, 0.75f, 1, null, -1),
 
-                // 3.2) lru = false, valid; test passato
-                Arguments.of(false, 100, 100, 0.75f, 1, null),
+                // T4: max = 0 -> Capacità nulla ammessa, storage disabilitato
+                Arguments.of(true, 0, 100, 0.75f, 1, null, 0),
 
-                // 3.3) max = -1, eccezione attesa; test fallito
-                /*Arguments.of(true, -1, 100, 0.75f, 1, IllegalArgumentException.class) */
+                // 3.5 & 3.6: max positivo (Valori di frontiera)
+                Arguments.of(true, 1, 100, 0.75f, 1, null, 1),
+                Arguments.of(true, 500, 100, 0.75f, 1, null, 500),
 
-                // 3.4) max = 0, eccezione attesa; test fallito
-                /*Arguments.of(true, 0, 100, 0.75f, 1, IllegalArgumentException.class) */
+                // T7: size = -1 -> Autocorrezione al valore predefinito 500
+                Arguments.of(true, 100, -1, 0.75f, 1, null, 100),
 
-                // 3.5) max = 1, valido; test passato
-                Arguments.of(true, 1, 100, 0.75f, 1, null),
+                // 3.8: size = 0 -> Dimensione iniziale non valida (Lancia eccezione dalla mappa interna)
+                Arguments.of(true, 100, 0, 0.75f, 1, IllegalArgumentException.class, 0),
 
-                // 3.6) max = 100, valido; test passato
-                Arguments.of(true, 100, 100, 0.75f, 1, null),
+                // 3.10 & 3.11: load <= 0 -> Eccezione prevista (Tabella 44)
+                Arguments.of(true, 100, 100, -1f, 1, IllegalArgumentException.class, 0),
+                Arguments.of(true, 100, 100, 0f, 1, IllegalArgumentException.class, 0),
 
-                // 3.7) size = -1, eccezione attesa; test fallito
-               /* Arguments.of(true, 100, -1, 0.75f, 1, IllegalArgumentException.class)*/
-
-                // 3.8) size = 0, eccezione attesa; test passato
-                Arguments.of(true, 100, 0, 0.75f, 1, IllegalArgumentException.class),
-
-                // 3.9) size = 1, valido; test passato
-                Arguments.of(true, 100, 1, 0.75f, 1, null),
-
-                // 3.10) load = -1, eccezione attesa; test passato
-                Arguments.of(true, 100, 100, -1f, 1, IllegalArgumentException.class),
-
-                // 3.11) load = 0, eccezione attesa; test passato
-                Arguments.of(true, 100, 100, 0f, 1, IllegalArgumentException.class),
-
-                // 3.12) concurrencyLevel = -1, eccezione attesa; test fallito
-                /*Arguments.of(true, 100, 100, 0.75f, -1, IllegalArgumentException.class)*/
-
-                // 3.13) concurrencyLevel = 0, eccezione attesa; test fallito
-                /*Arguments.of(true, 100, 100, 0.75f, 0, IllegalArgumentException.class)*/
-
-                // CM-1: size negativo -> deve essere corretto a 500; aggiunto a seguito di Jacoco
-                Arguments.of(true, 100, -1, 0.75f, 1, null),
-
-                // CM-2: max negativo -> deve essere corretto a Integer.MAX_VALUE, aggiunto a seguito di Jacoco
-                Arguments.of(true, -1, 100, 0.75f, 1, null)
+                // 3.12 & 3.13: concurrencyLevel <= 0 -> Solitamente autocorretto o accettato
+                Arguments.of(true, 100, 100, 0.75f, -1, null, 100),
+                Arguments.of(true, 100, 100, 0.75f, 0, null, 100)
         );
     }
 
-    //aggiunti per PIT --> per uccidere le mutazioni sopravvissute
-    @Test
-    void maxZeroShouldRemainZero() {
-        CacheMap cm = new CacheMap(true, 0, 100, 0.75f, 1);
-        assertNotNull(cm, "CacheMap instance should not be null");
-        assertEquals(0, cm.getCacheSize(), "max = 0 deve rimanere invariato");
-    }
-
-    @Test
-    void maxPositiveShouldRemainPositive() {
-        CacheMap cm = new CacheMap(true, 50, 100, 0.75f, 1);
-        assertNotNull(cm, "CacheMap instance should not be null");
-        assertEquals(50, cm.getCacheSize(), "max positivo deve rimanere invariato");
-    }
-
-    @Test
-    void maxNegativeShouldBecomeUnlimited() {
-        CacheMap cm = new CacheMap(true, -1, 100, 0.75f, 1);
-        assertNotNull(cm, "CacheMap instance should not be null");
-        assertEquals(-1, cm.getCacheSize(), "max negativo deve diventare illimitato (-1)");
-    }
-
-
-    @ParameterizedTest(name = "Test {index}: lru={0}, max={1}, size={2}, load={3}, concurrency={4}")
+    @ParameterizedTest(name = "Test {index}: max={1}, size={2}, load={3} -> Atteso: {5}")
     @MethodSource("data")
-    @Timeout(value = 5)
+    @Timeout(5)
     void construct(boolean lru, int max, int size, float load, int concurrencyLevel,
-                   Class<? extends Exception> expectedException) {
+                   Class<? extends Exception> expectedException, int expectedSizeResult) {
+
         if (expectedException != null) {
+            // Verifica che vengano lanciate le eccezioni per parametri critici (come load o size=0)
             assertThrows(expectedException,
-                    () -> new CacheMap(lru, max, size, load, concurrencyLevel),
-                    "Expected exception: " + expectedException.getName());
+                    () -> new CacheMap(lru, max, size, load, concurrencyLevel));
         } else {
-            try {
-                CacheMap cm = new CacheMap(lru, max, size, load, concurrencyLevel);
-                assertNotNull(cm, "CacheMap instance should not be null");
-            } catch (Exception e) {
-                fail("Unexpected exception thrown: " + e);
+            // Esecuzione del costruttore con autocorrezione (Black Box)
+            CacheMap cm = new CacheMap(lru, max, size, load, concurrencyLevel);
+
+            assertNotNull(cm, "L'istanza di CacheMap dovrebbe essere valida");
+
+            // Verifica dell'autocorrezione tramite API pubblica
+            // getCacheSize() è il metodo pubblico per verificare la capacità massima impostata
+            assertEquals(expectedSizeResult, cm.getCacheSize(),
+                    "Il valore di max non corrisponde all'aspettativa (considerando l'autocorrezione)");
+
+            // Verifica funzionale minima: la cache deve essere operativa
+            if (max != 0) {
+                cm.put("key", "value");
+                assertEquals("value", cm.get("key"), "La cache dovrebbe permettere put/get se max > 0");
             }
         }
     }

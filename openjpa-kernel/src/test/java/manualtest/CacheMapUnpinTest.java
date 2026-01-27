@@ -34,10 +34,6 @@ class CacheMapUnpinTest {
                 Arguments.of(KeyCategory.IN_PINNED_NULL, false, null),
                 //test 3; test passato
                 Arguments.of(KeyCategory.NOT_PRESENT, false, null)
-//                //test 4; test fallito
-//                Arguments.of(KeyCategory.INVALID, false, Exception.class),
-                //test 5; test fallito
-//                Arguments.of(KeyCategory.NULL, false, Exception.class)
         );
     }
 

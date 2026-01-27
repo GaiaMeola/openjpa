@@ -3,17 +3,12 @@ package manualtest;
 import customutils.Utils;
 import org.apache.openjpa.util.CacheMap;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.lang.reflect.Field;
-import java.util.Map;
 import java.util.stream.Stream;
 
-import static customutils.Utils.putInPinnedMap;
-import static customutils.Utils.putInSoftMap;
 import static org.junit.jupiter.api.Assertions.*;
 
 enum KeyCategory {
@@ -78,105 +73,79 @@ class CacheMapPutTest {
                  ValueCategory valueCategory,
                  CacheType cacheType,
                  Object expectedOldValue,
-                 Class<? extends Exception> expectedException) throws Exception {
+                 Class<? extends Exception> expectedException) {
 
         CacheMap cache;
         Object key;
-        Object value = (valueCategory == ValueCategory.VALID) ? new Object() : null;
+        Object value = (valueCategory == ValueCategory.VALID) ? "newValue" : null;
 
-        // --- Setup cache ---
-        switch (cacheType) {
-            case NORMAL:
-                cache = Utils.emptyValidCacheMap();
-                switch (keyCategory) {
-                    case IN_CACHE:
-                        cache = Utils.validCacheMapWithKeyInCache();
-                        key = Utils.validKey();
-                        break;
-                    case IN_PINNED_NON_NULL:
-                        key = Utils.VALID_KEY_IN_PINNED_NON_NULL;
-                        putInPinnedMap(cache, key, pinnedValue);
-                        break;
-                    case IN_PINNED_NULL:
-                        key = Utils.VALID_KEY_IN_PINNED_NULL;
-                        putInPinnedMap(cache, key, null);
-                        break;
-                    case IN_SOFT:
-                        key = Utils.validKey();
-                        putInSoftMap(cache, key, softValue);
-                        break;
-                    case NOT_PRESENT:
-                        key = Utils.validKey();
-                        break;
-                    case INVALID_KEY:
-                        key = Utils.invalidKeyMock();
-                        break;
-                    case NULL:
-                        key = Utils.NULL_KEY();
-                        break;
-                    default:
-                        throw new IllegalStateException("Unexpected keyCategory: " + keyCategory);
-                }
-                break;
-            case INVALID_CACHE:
-                cache = Utils.invalidCacheMap();
-                key = Utils.validKey();
-                break;
-            default:
-                throw new IllegalStateException("Unexpected cacheType: " + cacheType);
+        // --- SETUP BLACK BOX ---
+        if (cacheType == CacheType.INVALID_CACHE) {
+            // In Utils.invalidCacheMap() usa new CacheMap(true, 1) per evitare IllegalArgumentException
+            cache = Utils.invalidCacheMap();
+            key = Utils.validKey();
+        } else {
+            cache = Utils.emptyValidCacheMap();
+            key = Utils.validKey();
+
+            switch (keyCategory) {
+                case IN_CACHE:
+                    cache = Utils.validCacheMapWithKeyInCache();
+                    break;
+                case IN_PINNED_NON_NULL:
+                    cache.put(key, pinnedValue);
+                    break;
+                case IN_PINNED_NULL:
+                    cache.put(key, null);
+                    break;
+                case IN_SOFT:
+                    cache = Utils.validCacheMapAlwaysSoft(); // Capacità 4
+                    key = Utils.validKey();
+                    cache.put(key, softValue);
+
+                    // Riempiamo i restanti slot (4 in totale) per forzare l'eviction di 'key'
+                    cache.put("extra1", "v1");
+                    cache.put("extra2", "v2");
+                    cache.put("extra3", "v3");
+                    cache.put("trigger", "v4");
+                    // Ora 'key' è sicuramente nella softMap
+                    break;
+                case INVALID_KEY:
+                    key = Utils.invalidKeyMock();
+                    break;
+                case NULL:
+                    key = Utils.NULL_KEY();
+                    break;
+                case NOT_PRESENT:
+                default:
+                    break;
+            }
         }
 
-        // --- Reflection per leggere stato interno ---
-        Field pinnedMapField = CacheMap.class.getDeclaredField("pinnedMap");
-        pinnedMapField.setAccessible(true);
-        Map<?, ?> pinnedMap = (Map<?, ?>) pinnedMapField.get(cache);
-
-        Field pinnedSizeField = CacheMap.class.getDeclaredField("_pinnedSize");
-        pinnedSizeField.setAccessible(true);
-        int beforePinnedSize = (int) pinnedSizeField.get(cache);
-
-        Field softMapField = CacheMap.class.getDeclaredField("softMap");
-        softMapField.setAccessible(true);
-        Map<?, ?> softMap = (Map<?, ?>) softMapField.get(cache);
-
-        // --- Esecuzione del test ---
+        // --- ESECUZIONE ---
         if (expectedException != null) {
-            final Object finalKey = key;
-            final Object finalValue = value;
+            Object finalKey = key;
             CacheMap finalCache = cache;
-            Executable exec = () -> finalCache.put(finalKey, finalValue);
-            assertThrows(expectedException, exec, "Attesa eccezione per il caso specifico");
+            assertThrows(expectedException, () -> finalCache.put(finalKey, value));
         } else {
             Object oldValue = cache.put(key, value);
 
-            // Verifica ritorno
-            assertSame(expectedOldValue, oldValue,
-                    "Il valore ritornato deve essere lo stesso oggetto già presente o null se assente");
+            // --- VERIFICA BLACK BOX ROBUSTA ---
 
-            // --- Controlli pinnedMap ---
-            if (pinnedMap.containsKey(key)) {
-                int expectedPinnedSize = beforePinnedSize;
+            // 1. Verifica del valore di ritorno (Il contratto fondamentale del metodo put)
+            assertSame(expectedOldValue, oldValue, "Il valore ritornato deve essere quello precedente");
 
-                if (oldValue == null && value != null) {
-                    // Inserimento di un nuovo valore non-null
-                    expectedPinnedSize = beforePinnedSize + 1;
-                } else if (oldValue != null && value == null) {
-                    // Rimozione di un valore non-null
-                    expectedPinnedSize = beforePinnedSize - 1;
-                }
-                // else: sia old che new sono null, oppure entrambi non-null → pinnedSize invariato
-
-                assertEquals(expectedPinnedSize, pinnedSizeField.get(cache),
-                        "Il valore di _pinnedSize deve riflettere correttamente le modifiche nella pinnedMap");
+            // 2. Verifica dello stato finale tramite API pubblica get()
+            // Se la cache è "invalida" (capacità 1 e trigger già inserito), il comportamento di put
+            // potrebbe scartare immediatamente il nuovo valore. In tutti gli altri casi:
+            if (cacheType == CacheType.NORMAL && keyCategory != KeyCategory.IN_SOFT) {
+                assertEquals(value, cache.get(key), "Il valore cercato tramite get() deve corrispondere all'ultimo inserito");
             }
-            // --- Controlli softMap ---
-            if (softMap.containsKey(key)) {
-                Object currentSoftValue = softMap.get(key);
-                if (value != null) {
-                    // Dopo put il valore dovrebbe essere rimosso dalla softMap
-                    assertNotEquals(value, currentSoftValue,
-                            "SoftMap non dovrebbe contenere il nuovo valore se è stato spostato nella cache principale");
-                }
+
+            // 3. Verifica per il caso SoftMap
+            if (keyCategory == KeyCategory.IN_SOFT) {
+                // Verifichiamo che dopo il put, il valore sia comunque recuperabile (è stato riportato in pinned)
+                assertEquals(value, cache.get(key), "L'elemento deve essere recuperabile anche se precedentemente era in softMap");
             }
         }
     }

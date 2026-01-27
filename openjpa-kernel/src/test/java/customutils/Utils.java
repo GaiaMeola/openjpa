@@ -2,8 +2,6 @@ package customutils;
 
 import org.apache.openjpa.util.CacheMap;
 
-import static org.mockito.Mockito.*;
-
 /**
  * Utils per costruire istanze valide e invalide di CacheMap
  * e chiavi.
@@ -75,6 +73,8 @@ public class Utils {
     // CACHEMAP INVALIDE
     // =======================
     public static CacheMap invalidCacheMap() {
-        return new CacheMap(true, 4);
+        // Configurazione P1: max=0 (capacità nulla), size=100 (mappa interna),
+        // lru=true, load=0.75, concurrency=1
+        return new CacheMap(true, 0, 100, 0.75f, 1);
     }
 }

@@ -66,7 +66,12 @@ class CacheMapConstructorTest {
                     "Il valore di max non corrisponde all'aspettativa (considerando l'autocorrezione)");
 
             // Verifica funzionale minima: la cache deve essere operativa
-            if (max != 0) {
+            // Nel ramo else del metodo construct:
+            if (max == 0) {
+                cm.put("key", "value");
+                // Se max è 0, get deve restituire null perché non c'è spazio di memorizzazione
+                assertNull(cm.get("key"), "Con max=0 la cache non deve memorizzare dati");
+            } else {
                 cm.put("key", "value");
                 assertEquals("value", cm.get("key"), "La cache dovrebbe permettere put/get se max > 0");
             }

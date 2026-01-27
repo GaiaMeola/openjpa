@@ -27,18 +27,19 @@ class CacheMapPinTest {
 
     private static Stream<Arguments> data() {
         return Stream.of(
-                // Test funzionali standard
                 Arguments.of(false, KeyCategory.IN_CACHE, true, null),
                 Arguments.of(false, KeyCategory.IN_SOFT, true, null),
                 Arguments.of(false, KeyCategory.IN_PINNED_NON_NULL, true, null),
                 Arguments.of(false, KeyCategory.IN_PINNED_NULL, false, null),
                 Arguments.of(false, KeyCategory.NOT_PRESENT, false, null),
-                Arguments.of(false, KeyCategory.INVALID, false, Exception.class),
-                //Test modificato --> a seguito dell'esecuzione
+
+                // Esempio corretto per il caso 6
+                Arguments.of(false, KeyCategory.INVALID, false, RuntimeException.class),
+
+                // Modifica 2: Caso NULL già allineato alla tua osservazione
                 Arguments.of(false, KeyCategory.NULL, false, null),
 
-                // test P1: Category Partition (Iru=TRUE, max=0, size=100, key=valid)
-                // Output atteso FALSE perché con max=0 la chiave non può risiedere in cache
+                // test P1: Utilizzerà la nuova Utils.invalidCacheMap() aggiornata a max=0
                 Arguments.of(true, KeyCategory.NOT_PRESENT, false, null)
         );
     }
@@ -56,10 +57,10 @@ class CacheMapPinTest {
 
         // --- SETUP ---
         if (useInvalidCache) {
-            // P1: Usiamo il costruttore a 5 parametri che accetta max=0 senza crashare
-            // lru=true, max=0, size=100, load=0.75f, concurrency=1
-            cache = new CacheMap(true, 0, 100, 0.75f, 1);
-            keyToPin = "validKeyP1";
+            // P1: Utilizza Utils.invalidCacheMap() che implementa il costruttore a 5 parametri
+            // con max=0 per simulare una cache invalida senza causare crash durante l'init.
+            cache = invalidCacheMap();
+            keyToPin = validKey();
         } else {
             switch (keyCategory) {
                 case IN_CACHE:
@@ -70,6 +71,7 @@ class CacheMapPinTest {
                     cache = validCacheMapAlwaysSoft();
                     keyToPin = VALID_KEY_IN_SOFT;
                     cache.put(keyToPin, "someValue");
+                    // Forziamo l'eviction per spostare la chiave in softMap
                     for (int i = 0; i < 5; i++) cache.put("extra" + i, "val");
                     break;
                 case IN_PINNED_NON_NULL:
@@ -107,13 +109,18 @@ class CacheMapPinTest {
         } else {
             boolean result = cache.pin(keyToPin);
 
-            assertEquals(expectedOutput, result, "Il risultato di pin() non è corretto");
+            // Verifica dell'output atteso (FALSE per P1, NULL e INVALID)
+            assertEquals(expectedOutput, result, "Il risultato di pin() non è corretto per: " + keyCategory);
 
+            // Verifica dello stato post-operazione
             if (result) {
-                assertNotNull(cache.get(keyToPin));
+                assertNotNull(cache.get(keyToPin), "La chiave pinnata deve essere presente");
             } else {
-                // Se pin fallisce (come in P1), verifichiamo che la cache sia coerente
-                assertTrue(cache.size() <= 100);
+                // Se pin fallisce (come in P1), la cache non deve contenere il valore
+                if (useInvalidCache) {
+                    assertNull(cache.get(keyToPin), "Con max=0 la cache non deve memorizzare dati");
+                }
+                assertTrue(cache.size() <= 100, "Invariante sulla dimensione massima violato");
             }
         }
     }

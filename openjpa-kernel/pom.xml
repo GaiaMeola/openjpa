@@ -72,7 +72,18 @@
             <artifactId>xbean-asm9-shaded</artifactId>
             <version>${xbean.version}</version>
         </dependency>
-
+        <!--aggiunto per PIT -->
+            <dependency>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-junit5-plugin</artifactId>
+                <version>1.2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-testng-plugin</artifactId>
+                <version>1.0.0</version>
+            </dependency>
+        <!--aggiunto per PIT -->
         <dependency>
             <!--
                 This is only used for implementing WASManagedRuntime
@@ -135,53 +146,40 @@
     <build>
         <plugins>
             <!-- addition by GAIA to run PIT -->
+
+            <!-- Add for using Pitest by Flavio -->
             <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.16.0</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.pitest</groupId>
-                        <artifactId>pitest-junit5-plugin</artifactId>
-                        <version>1.2.1</version>
-                    </dependency>
-                </dependencies>
+                <version>1.15.3</version> <dependencies>
+                <dependency>
+                    <groupId>org.pitest</groupId>
+                    <artifactId>pitest-junit5-plugin</artifactId>
+                    <version>1.2.1</version>
+                </dependency>
+            </dependencies>
                 <configuration>
-
+                    <testPlugin>junit5</testPlugin>
                     <targetClasses>
                         <param>org.apache.openjpa.util.CacheMap</param>
                     </targetClasses>
-
-                    <targetTests>
-                        <param>manualtest.*</param>
-                    </targetTests>
-
-                    <!-- Report -->
+                    <skip>${skipPit}</skip>
+                    <threads>1</threads>
                     <outputFormats>
+                        <param>XML</param>
                         <param>HTML</param>
                     </outputFormats>
-
-                    <!-- Mutatori scelti -->
-                    <mutators>
-                        <mutator>CONDITIONALS_BOUNDARY</mutator>
-                        <mutator>INCREMENTS</mutator>
-                        <mutator>INVERT_NEGS</mutator>
-                        <mutator>MATH</mutator>
-                        <mutator>NEGATE_CONDITIONALS</mutator>
-                        <mutator>REMOVE_CONDITIONALS_EQUAL_IF</mutator>
-                        <mutator>REMOVE_CONDITIONALS_ORDER_IF</mutator>
-                        <mutator>TRUE_RETURNS</mutator>
-                        <mutator>FALSE_RETURNS</mutator>
-                        <mutator>PRIMITIVE_RETURNS</mutator>
-                    </mutators>
-
-                    <!-- Configurazione di runtime -->
-                    <threads>2</threads>
-                    <verbose>true</verbose>
-                    <timeoutFactor>2</timeoutFactor>
-                    <timeoutConstant>120000</timeoutConstant>
-                    <avoidCallsTo>java.lang.System</avoidCallsTo>
+                    <exportLineCoverage>true</exportLineCoverage>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>pitest-execution</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>mutationCoverage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <!-- addition by GAIA to run PIT -->
             <plugin>

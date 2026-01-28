@@ -97,7 +97,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
-            <version>5.10.2</version>
+            <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -124,6 +124,7 @@
         </dependency>
 
         <!-- addition to run Integration Testing -->
+
     </dependencies>
 
     <build>
@@ -199,109 +200,65 @@ openjpa.enhancer.revision=${pcenhancer.git.revision}${uncommitted.changes}
                     <reuseForks>false</reuseForks>
                 </configuration>
             </plugin>
-            <!-- addition to run integration testing -->
+            <!-- Surefire per eseguire i test -->
+
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.16.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>org.apache.openjpa.lib.util.ClassUtil*</param>
+                    </targetClasses>
+
+                    <targetTests>
+                        <param>manualtest.*</param>
+                    </targetTests>
+
+                    <jvmArgs>
+                        <value>-Xmx1024m</value>
+                    </jvmArgs>
+
+                    <argLine>--add-opens java.base/java.lang=ALL-UNNAMED</argLine>
+
+                    <testEngine>junit5</testEngine>
+
+                    <outputFormats>
+                        <param>HTML</param>
+                    </outputFormats>
+
+                    <mutators>
+                        <mutator>CONDITIONALS_BOUNDARY</mutator>
+                        <mutator>INCREMENTS</mutator>
+                        <mutator>INVERT_NEGS</mutator>
+                        <mutator>MATH</mutator>
+                        <mutator>NEGATE_CONDITIONALS</mutator>
+                        <mutator>REMOVE_CONDITIONALS_EQUAL_IF</mutator>
+                        <mutator>REMOVE_CONDITIONALS_ORDER_IF</mutator>
+                        <mutator>TRUE_RETURNS</mutator>
+                        <mutator>FALSE_RETURNS</mutator>
+                        <mutator>PRIMITIVE_RETURNS</mutator>
+                    </mutators>
+                    <threads>2</threads>
+                    <verbose>true</verbose>
+                    <timeoutFactor>2</timeoutFactor>
+                    <timeoutConstant>120000</timeoutConstant>
+
+                    <avoidCallsTo>
+                        <param>java.util.logging</param>
+                        <param>org.apache.log4j</param>
+                        <param>org.slf4j</param>
+                        <param>org.apache.commons.logging</param>
+                    </avoidCallsTo>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
-    <!-- addition by Gaia to run JACOCO -->
-    <profiles>
-        <profile>
-            <id>coverage</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <!-- Surefire per eseguire i test -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>3.5.2</version>
-                        <configuration>
-                            <forkCount>1</forkCount>
-                            <reuseForks>true</reuseForks>
-                            <argLine>${argLine}</argLine> <includes>
-                            <include>**/*Test.java</include>
-                            <include>**/*IT.java</include>
-                        </includes>
-                        </configuration>
-                    </plugin>
-
-                    <!-- JaCoCo plugin -->
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                        <version>0.8.13</version>
-                        <executions>
-                            <!-- Prepara l'agente JaCoCo prima dei test -->
-                            <execution>
-                                <id>prepare-agent</id>
-                                <goals>
-                                    <goal>prepare-agent</goal>
-                                </goals>
-                            </execution>
-                            <!-- Genera il report dopo i test -->
-                            <execution>
-                                <id>report</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>report</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- addition by GAIA to run PIT -->
-                    <plugin>
-                        <groupId>org.pitest</groupId>
-                        <artifactId>pitest-maven</artifactId>
-                        <version>1.16.0</version>
-                        <dependencies>
-                            <dependency>
-                                <groupId>org.pitest</groupId>
-                                <artifactId>pitest-junit5-plugin</artifactId>
-                                <version>1.2.1</version>
-                            </dependency>
-                        </dependencies>
-                        <configuration>
-
-                            <targetClasses>
-                                <param>import org.apache.openjpa.lib.util.ClassUtil;</param>
-                            </targetClasses>
-
-                            <targetTests>
-                                <param>manualtest.*</param>
-                            </targetTests>
-
-                            <!-- Report -->
-                            <outputFormats>
-                                <param>HTML</param>
-                            </outputFormats>
-
-                            <!-- Mutatori scelti -->
-                            <mutators>
-                                <mutator>CONDITIONALS_BOUNDARY</mutator>
-                                <mutator>INCREMENTS</mutator>
-                                <mutator>INVERT_NEGS</mutator>
-                                <mutator>MATH</mutator>
-                                <mutator>NEGATE_CONDITIONALS</mutator>
-                                <mutator>REMOVE_CONDITIONALS_EQUAL_IF</mutator>
-                                <mutator>REMOVE_CONDITIONALS_ORDER_IF</mutator>
-                                <mutator>TRUE_RETURNS</mutator>
-                                <mutator>FALSE_RETURNS</mutator>
-                                <mutator>PRIMITIVE_RETURNS</mutator>
-                            </mutators>
-
-                            <!-- Configurazione di runtime -->
-                            <threads>2</threads>
-                            <verbose>true</verbose>
-                            <timeoutFactor>2</timeoutFactor>
-                            <timeoutConstant>120000</timeoutConstant>
-                            <avoidCallsTo>java.lang.System</avoidCallsTo>
-                        </configuration>
-                    </plugin>
-                    <!-- addition by GAIA to run PIT -->
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-    <!-- addition by Gaia to run JACOCO -->
 </project>

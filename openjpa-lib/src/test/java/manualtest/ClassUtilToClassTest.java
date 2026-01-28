@@ -38,6 +38,15 @@ class ClassUtilToClassTest {
                 Arguments.of(InputCategory.INVALID_CLASS, "java..lang.String", false, ClassLoader.getSystemClassLoader(), null, Exception.class),
                 Arguments.of(InputCategory.NULL_CLASS, null, false, ClassLoader.getSystemClassLoader(), null, Exception.class),
 
+                // T11: Array primitivo letterale.
+                Arguments.of(InputCategory.VALID_CLASS, "int[]", false, ClassLoader.getSystemClassLoader(), int[].class, null),
+
+                // T12: Array oggetti letterale.
+                Arguments.of(InputCategory.VALID_CLASS, "java.lang.String[]", false, ClassLoader.getSystemClassLoader(), String[].class, null),
+
+                // T13: Array multidimensionale letterale.
+                Arguments.of(InputCategory.VALID_CLASS, "double[][]", false, ClassLoader.getSystemClassLoader(), double[][].class, null),
+
                 // T10: Risoluzione copertura ClassLoader nullo
                 Arguments.of(InputCategory.VALID_CLASS, "java.lang.String", true, null, String.class, null)
         );

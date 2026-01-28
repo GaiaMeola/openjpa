@@ -48,6 +48,13 @@ class ClassUtilGetClassNameStringTest {
                 Arguments.of(InputCategory.VALID, "[[[I", "int[][][]", null),          // AGGIUNTO: Raffinamento Multidimensionale
                 Arguments.of(InputCategory.VALID, "[[Ljava.awt.Point;", "Point[][]", null), // AGGIUNTO: Raffinamento Multidimensionale
 
+                // T4.6: Oracle Ideale - Un codice tipo 'X' non esiste, ci si aspetta eccezione.
+                // Il test FALLIRÀ perché il software restituisce "[X[]" invece di lanciare Exception.
+//                Arguments.of(InputCategory.INVALID, "[X", null, Exception.class),
+
+                // T4.7: Oracle Ideale - Manca il terminatore ';', ci si aspetta eccezione.
+                // Il test FALLIRÀ perché il software restituisce "String[]" invece di lanciare Exception.
+//                Arguments.of(InputCategory.INVALID, "[Ljava.lang.String", null, Exception.class),
                 // ===== STRINGHE NON VALIDE =====
                 // 4.4.5) Stringa vuota
                 Arguments.of(InputCategory.EMPTY, "", "", null),

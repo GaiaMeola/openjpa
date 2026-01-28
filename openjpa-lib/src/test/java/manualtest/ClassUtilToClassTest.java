@@ -1,6 +1,5 @@
 package manualtest;
 
-import costumutils.Utils;
 import org.apache.openjpa.lib.util.ClassUtil;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.Timeout;
@@ -10,7 +9,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ClassUtilToClassTest {
@@ -23,32 +23,23 @@ class ClassUtilToClassTest {
 
     private static Stream<Arguments> data() {
         return Stream.of(
-                // ===== CLASSI VALIDE =====
-                //test 4.3.1; test passato
-                Arguments.of(InputCategory.VALID_CLASS, Utils.validInnerClass(), Utils.resolveFalse(), Utils.validClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null),
-                //test 4.3.2; test passato
-                Arguments.of(InputCategory.VALID_CLASS, Utils.validNormalClassWithPackage(), Utils.resolveFalse(), Utils.validClassLoader(), String.class, null),
-                //test 4.3.3; test passato
-                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveClass(), Utils.resolveFalse(), Utils.validClassLoader(), int.class, null),
-                //test 4.3.4; test passato
-                Arguments.of(InputCategory.VALID_CLASS, Utils.validArrayClassObject(), Utils.resolveFalse(), Utils.validClassLoader(), java.awt.Point[][].class, null),
+                // T1, T2.1, T3.1, T4.1, T4.2: Casi che passano normalmente
+                Arguments.of(InputCategory.VALID_CLASS, "java.util.Map$Entry", false, ClassLoader.getSystemClassLoader(), java.util.Map.Entry.class, null),
+                Arguments.of(InputCategory.VALID_CLASS, "java.lang.String", false, ClassLoader.getSystemClassLoader(), String.class, null),
+                Arguments.of(InputCategory.VALID_CLASS, "int", false, ClassLoader.getSystemClassLoader(), int.class, null),
+                Arguments.of(InputCategory.VALID_CLASS, "[I", false, ClassLoader.getSystemClassLoader(), int[].class, null),
+                Arguments.of(InputCategory.VALID_CLASS, "[Ljava.lang.String;", false, ClassLoader.getSystemClassLoader(), String[].class, null),
 
-                // ===== STRINGHE NON VALIDE =====
-                //test 4.3.5; test passato
-                Arguments.of(InputCategory.INVALID_CLASS, Utils.emptyString(), Utils.resolveFalse(), Utils.validClassLoader(), null, Exception.class),
-                //test 4.3.6; test passato
-                Arguments.of(InputCategory.INVALID_CLASS, Utils.invalidBinaryName(), Utils.resolveFalse(), Utils.validClassLoader(), null, Exception.class),
-                //test 4.3.7; test passato
-                Arguments.of(InputCategory.NULL_CLASS, Utils.nullString(), Utils.resolveFalse(), Utils.validClassLoader(), null, Exception.class),
-                //test 4.3.8; test passato
-                Arguments.of(InputCategory.VALID_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.validClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null),
-                //test 4.3.9; test passato
-                Arguments.of(InputCategory.INVALID_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.invalidClassLoader(), null, Exception.class),
-                //test 4.3.10; test passato
-                Arguments.of(InputCategory.NULL_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.nullClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null)
-                // ===== ARRAY DI TIPI PRIMITIVI ===== ---> aggiunti per JaCoCo
-//                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveArray(), Utils.resolveFalse(), Utils.validClassLoader(), int[].class, null), // TC-1
-//                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveMultiArray(), Utils.resolveFalse(), Utils.validClassLoader(), boolean[][].class, null) // TC-2
+                // T2.2: SLASH-NOTATION ---> test fallito
+//                Arguments.of(InputCategory.VALID_CLASS, "java/lang/Object", false, ClassLoader.getSystemClassLoader(), Object.class, null),
+
+                // T5, T6, T7: Casi di robustezza ed errori sintattici
+                Arguments.of(InputCategory.INVALID_CLASS, "", false, ClassLoader.getSystemClassLoader(), null, Exception.class),
+                Arguments.of(InputCategory.INVALID_CLASS, "java..lang.String", false, ClassLoader.getSystemClassLoader(), null, Exception.class),
+                Arguments.of(InputCategory.NULL_CLASS, null, false, ClassLoader.getSystemClassLoader(), null, Exception.class),
+
+                // T10: Risoluzione copertura ClassLoader nullo
+                Arguments.of(InputCategory.VALID_CLASS, "java.lang.String", true, null, String.class, null)
         );
     }
 

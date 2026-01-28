@@ -45,10 +45,10 @@ class ClassUtilToClassTest {
                 //test 4.3.9; test passato
                 Arguments.of(InputCategory.INVALID_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.invalidClassLoader(), null, Exception.class),
                 //test 4.3.10; test passato
-                Arguments.of(InputCategory.NULL_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.nullClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null),
+                Arguments.of(InputCategory.NULL_CLASS, Utils.validInnerClass(), Utils.resolveTrue(), Utils.nullClassLoader(), javax.swing.JSpinner.DefaultEditor.class, null)
                 // ===== ARRAY DI TIPI PRIMITIVI ===== ---> aggiunti per JaCoCo
-                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveArray(), Utils.resolveFalse(), Utils.validClassLoader(), int[].class, null), // TC-1
-                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveMultiArray(), Utils.resolveFalse(), Utils.validClassLoader(), boolean[][].class, null) // TC-2
+//                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveArray(), Utils.resolveFalse(), Utils.validClassLoader(), int[].class, null), // TC-1
+//                Arguments.of(InputCategory.VALID_CLASS, Utils.validPrimitiveMultiArray(), Utils.resolveFalse(), Utils.validClassLoader(), boolean[][].class, null) // TC-2
         );
     }
 

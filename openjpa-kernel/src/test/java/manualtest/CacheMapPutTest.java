@@ -23,6 +23,27 @@ enum CacheType {
     NORMAL, INVALID_CACHE
 }
 
+class ObservableCacheMap extends CacheMap {
+    public int addedCalls = 0;
+    public int removedCalls = 0;
+
+    public ObservableCacheMap(boolean lru, int max) {
+        super(lru, max);
+    }
+
+    @Override
+    protected void entryAdded(Object key, Object value) {
+        addedCalls++;
+        super.entryAdded(key, value);
+    }
+
+    @Override
+    protected void entryRemoved(Object key, Object value, boolean expired) {
+        removedCalls++;
+        super.entryRemoved(key, value, expired);
+    }
+}
+
 class CacheMapPutTest {
 
     // --- Valore preesistente per il test pinnato ---
@@ -66,87 +87,66 @@ class CacheMapPutTest {
     @ParameterizedTest
     @MethodSource("data")
     @Timeout(5)
-    void testPut(KeyCategory keyCategory,
-                 ValueCategory valueCategory,
-                 CacheType cacheType,
-                 Object expectedOldValue,
-                 Class<? extends Exception> expectedException) {
+    void testPut(KeyCategory keyCategory, ValueCategory valueCategory, CacheType cacheType,
+                 Object expectedOldValue, Class<? extends Exception> expectedException) {
 
-        CacheMap cache;
-        Object key;
+        // Utilizziamo la classe Observable per poter spiare
+        ObservableCacheMap cache = new ObservableCacheMap(true, 10);
+        Object key = "testKey";
         Object value = (valueCategory == ValueCategory.VALID) ? "newValue" : null;
 
-        // --- SETUP BLACK BOX ---
+        // --- SETUP ---
         if (cacheType == CacheType.INVALID_CACHE) {
-            // In Utils.invalidCacheMap() usa new CacheMap(true, 1) per evitare IllegalArgumentException
-            cache = Utils.invalidCacheMap();
-            key = Utils.validKey();
+            cache.setCacheSize(0); // Forza maxSize = 0 per riga 402
         } else {
-            cache = Utils.emptyValidCacheMap();
-            key = Utils.validKey();
-
             switch (keyCategory) {
-                case IN_CACHE:
-                    cache = Utils.validCacheMapWithKeyInCache();
-                    break;
+                case IN_CACHE: cache.put(key, "valueCache"); break;
                 case IN_PINNED_NON_NULL:
-                    cache.pin(key);              // 1. Sposta la chiave in pinnedMap
-                    cache.put(key, pinnedValue); // 2. Assegna il valore preesistente
+                    cache.pin(key);
+                    cache.put(key, pinnedValue);
                     break;
-                case IN_PINNED_NULL:
-                    cache.pin(key);              // 1. Sposta la chiave in pinnedMap
-                    // Non serve put(key, null) se pin() inizializza già a null,
-                    // ma rende esplicito il tuo caso T3-T4.
-                    break;
+                case IN_PINNED_NULL: cache.pin(key); break;
                 case IN_SOFT:
-                    cache = Utils.validCacheMapAlwaysSoft(); // Capacità 4
-                    key = Utils.validKey();
+                    cache.setCacheSize(2);
                     cache.put(key, softValue);
-
-                    // Riempiamo i restanti slot (4 in totale) per forzare l'eviction di 'key'
                     cache.put("extra1", "v1");
-                    cache.put("extra2", "v2");
-                    cache.put("extra3", "v3");
-                    cache.put("trigger", "v4");
-                    // Ora 'key' è sicuramente nella softMap
+                    cache.put("extra2", "v2"); // Sposta 'key' in softMap
                     break;
-                case INVALID_KEY:
-                    key = Utils.invalidKeyMock();
-                    break;
-                case NULL:
-                    key = Utils.NULL_KEY();
-                    break;
-                case NOT_PRESENT:
-                default:
-                    break;
+                case INVALID_KEY: key = Utils.invalidKeyMock(); break;
+                case NULL: key = null; break;
+                default: break;
             }
         }
 
+        // Reset contatori dopo il setup
+        cache.addedCalls = 0;
+        cache.removedCalls = 0;
+        int sizeBefore = cache.size();
+
         // --- ESECUZIONE ---
         if (expectedException != null) {
-            Object finalKey = key;
-            CacheMap finalCache = cache;
-            assertThrows(expectedException, () -> finalCache.put(finalKey, value));
+            final Object fKey = key;
+            final Object fVal = value;
+            assertThrows(expectedException, () -> cache.put(fKey, fVal));
         } else {
             Object oldValue = cache.put(key, value);
 
-            // --- VERIFICA BLACK BOX ROBUSTA ---
-
-            // 1. Verifica del valore di ritorno (Il contratto fondamentale del metodo put)
-            assertSame(expectedOldValue, oldValue, "Il valore ritornato deve essere quello precedente");
-
-            // 2. Verifica dello stato finale tramite API pubblica get()
-            // Se la cache è "invalida" (capacità 1 e trigger già inserito), il comportamento di put
-            // potrebbe scartare immediatamente il nuovo valore. In tutti gli altri casi:
-            if (cacheType == CacheType.NORMAL && keyCategory != KeyCategory.IN_SOFT) {
-                assertEquals(value, cache.get(key), "Il valore cercato tramite get() deve corrispondere all'ultimo inserito");
+            // verifica incremento size
+            if (keyCategory == KeyCategory.IN_PINNED_NULL && valueCategory == ValueCategory.VALID) {
+                assertEquals(sizeBefore + 1, cache.size(), " _pinnedSize non incrementato");
             }
 
-            // 3. Verifica per il caso SoftMap
-            if (keyCategory == KeyCategory.IN_SOFT) {
-                // Verifichiamo che dopo il put, il valore sia comunque recuperabile (è stato riportato in pinned)
-                assertEquals(value, cache.get(key), "L'elemento deve essere recuperabile anche se precedentemente era in softMap");
+            if (cacheType == CacheType.NORMAL && value != null) {
+                assertTrue(cache.addedCalls > 0, "entryAdded rimosso o non chiamato");
             }
+            if (expectedOldValue != null) {
+                assertTrue(cache.removedCalls > 0, "entryRemoved rimosso o non chiamato");
+            }
+
+            // 3. Verifica standard valore di ritorno
+            assertSame(expectedOldValue, oldValue);
+
+            // 4. KILLER RIGA 422 (writeUnlock): se il test finisce senza timeout, il lock è gestito
         }
     }
 }

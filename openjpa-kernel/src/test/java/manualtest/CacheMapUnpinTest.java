@@ -69,15 +69,26 @@ class CacheMapUnpinTest {
 
         // --- ESECUZIONE E VERIFICA ---
         if (expectedException != null) {
-            assertThrows(expectedException, () -> cache.unpin(keyToUnpin));
+            final Object finalKey = keyToUnpin;
+            assertThrows(expectedException, () -> cache.unpin(finalKey));
         } else {
-            boolean result = cache.unpin(keyToUnpin);
-            assertEquals(expectedOutput, result, "Il risultato di unpin() non è corretto");
+            // Snapshot della size totale prima dell'operazione
+            // size() = _pinnedSize + cacheMap.size() + softMap.size()
+            int initialTotalSize = cache.size();
 
-            // Verifica funzionale post-unpin:
-            // 1. Se l'unpin ha avuto successo o la chiave esisteva, il dato deve essere ancora leggibile.
-            // Unpin rimuove il blocco, non l'oggetto dalla cache!
-            if (keyCategory == KeyCategory.IN_PINNED_NON_NULL) {
+            boolean result = cache.unpin(keyToUnpin);
+
+            // 1. Verifica dell'output booleano
+            assertEquals(expectedOutput, result, "Il risultato di unpin() non è corretto per: " + keyCategory);
+
+            // 2. Verifica dello stato interno (UCCIDE IL MUTANTE 325)
+            if (result) {
+                // Se unpin ha successo, l'oggetto viene spostato da pinnedMap a cacheMap.
+                // La size() totale DEVE rimanere invariata.
+                assertEquals(initialTotalSize, cache.size(),
+                        "La size() totale non riflette il corretto decremento di _pinnedSize");
+
+                // Verifica funzionale: l'oggetto deve essere ancora nella cache (spostato, non rimosso)
                 assertEquals(value, cache.get(keyToUnpin), "L'oggetto deve essere ancora presente dopo l'unpin");
             }
         }

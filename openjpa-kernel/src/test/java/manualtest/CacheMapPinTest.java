@@ -109,20 +109,32 @@ class CacheMapPinTest {
             final CacheMap finalCache = cache;
             assertThrows(expectedException, () -> finalCache.pin(finalKey));
         } else {
+            int initialTotalSize = cache.size();
+            int initialPinnedKeys = cache.getPinnedKeys().size();
+
             boolean result = cache.pin(keyToPin);
 
-            // Verifica dell'output atteso (FALSE per P1, NULL e INVALID)
+            // 1. Verifica dell'output
             assertEquals(expectedOutput, result, "Il risultato di pin() non è corretto per: " + keyCategory);
 
-            // Verifica dello stato post-operazione
+            // 2. Verifica dello stato interno
             if (result) {
-                assertNotNull(cache.get(keyToPin), "La chiave pinnata deve essere presente");
+                // Se pin ha successo, l'elemento è stato SPOSTATO da cache/softMap a pinnedMap.
+                // Di conseguenza, la dimensione totale (size()) deve rimanere invariata.
+                assertEquals(initialTotalSize, cache.size(),
+                        "La size() totale non riflette correttamente l'incremento di _pinnedSize");
+
+                // Verifichiamo anche che sia effettivamente nei pinnedKeys
+                assertTrue(cache.getPinnedKeys().contains(keyToPin), "La chiave deve essere nei pinnedKeys");
             } else {
-                // Se pin fallisce (come in P1), la cache non deve contenere il valore
-                if (useInvalidCache) {
-                    assertNull(cache.get(keyToPin), "Con max=0 la cache non deve memorizzare dati");
+                // Se result è false (es. NOT_PRESENT), la chiave viene aggiunta ai pinnedKeys
+                // ma con valore null, quindi _pinnedSize NON deve incrementare.
+                // La size totale deve aumentare di 0 (perché il nullo non conta in _pinnedSize)
+                // ma i pinnedKeys aumentano di 1.
+                if (keyCategory == KeyCategory.NOT_PRESENT) {
+                    assertEquals(initialPinnedKeys + 1, cache.getPinnedKeys().size());
+                    assertEquals(initialTotalSize, cache.size(), "Il pin di un null non deve incrementare la size()");
                 }
-                assertTrue(cache.size() <= 100, "Invariante sulla dimensione massima violato");
             }
         }
     }

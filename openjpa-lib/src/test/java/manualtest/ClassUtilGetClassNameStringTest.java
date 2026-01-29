@@ -23,6 +23,7 @@ class ClassUtilGetClassNameStringTest {
     }
 
     private static Stream<Arguments> data() {
+
         return Stream.of(
                 // ===== STRINGHE VALIDE =====
                 // 4.4.1) Classe interna
@@ -55,6 +56,9 @@ class ClassUtilGetClassNameStringTest {
                 // T4.7: Oracle Ideale - Manca il terminatore ';', ci si aspetta eccezione.
                 // Il test FALLIRÀ perché il software restituisce "String[]" invece di lanciare Exception.
 //                Arguments.of(InputCategory.INVALID, "[Ljava.lang.String", null, Exception.class),
+
+                // T8) RAFFINAMENTO BVA: Punto in posizione 0 (PIT)
+                Arguments.of(InputCategory.VALID, ".SimpleClass", "SimpleClass", null),
                 // ===== STRINGHE NON VALIDE =====
                 // 4.4.5) Stringa vuota
                 Arguments.of(InputCategory.EMPTY, "", "", null),

@@ -234,8 +234,6 @@
                         <value>--add-opens=java.base/java.lang=ALL-UNNAMED</value>
                     </jvmArgs>
 
-                    <testEngine>junit5</testEngine>
-
                     <outputFormats>
                         <param>HTML</param>
                     </outputFormats>

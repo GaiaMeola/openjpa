@@ -14,7 +14,7 @@ class CacheMapConstructorTest {
 
     private static Stream<Arguments> data() {
         return Stream.of(
-                // 3.1 & 3.2: Casi validi standard (lru true/false)
+                // T1 & T2: Casi validi standard (lru true/false)
                 Arguments.of(true, 100, 100, 0.75f, 1, null, 100),
                 Arguments.of(false, 100, 100, 0.75f, 1, null, 100),
 

@@ -35,6 +35,17 @@
     <name>OpenJPA Kernel</name>
     <description>OpenJPA Kernel</description>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.10.2</version> <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.apache.openjpa</groupId>
@@ -73,16 +84,16 @@
             <version>${xbean.version}</version>
         </dependency>
         <!--aggiunto per PIT -->
-            <dependency>
-                <groupId>org.pitest</groupId>
-                <artifactId>pitest-junit5-plugin</artifactId>
-                <version>1.2.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.pitest</groupId>
-                <artifactId>pitest-testng-plugin</artifactId>
-                <version>1.0.0</version>
-            </dependency>
+        <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-testng-plugin</artifactId>
+            <version>1.0.0</version>
+        </dependency>
         <!--aggiunto per PIT -->
         <dependency>
             <!--
@@ -134,10 +145,10 @@
             <version>RELEASE</version>
             <scope>test</scope> -->
             <!-- addition by Gaia to run Test -->
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter</artifactId>
-                <version>5.10.2</version>
-                <scope>test</scope>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.10.2</version>
+            <scope>test</scope>
         </dependency>
         <!-- addition by GAIA to run EVOSUITE -->
 
@@ -159,11 +170,9 @@
                 </dependency>
             </dependencies>
                 <configuration>
-                    <testPlugin>junit5</testPlugin>
                     <targetClasses>
                         <param>org.apache.openjpa.util.CacheMap</param>
                     </targetClasses>
-                    <skip>${skipPit}</skip>
                     <threads>1</threads>
                     <outputFormats>
                         <param>XML</param>
@@ -204,18 +213,18 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
-          <!--          <execution>
-                        <id>add-was-interfaces</id>
-                        <phase>process-classes</phase>
-                        <configuration>
-                            <target>
-                                <java classname="org.apache.openjpa.ee.WASManagedRuntime" classpathref="maven.runtime.classpath" />
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>-->
+                    <!--          <execution>
+                                  <id>add-was-interfaces</id>
+                                  <phase>process-classes</phase>
+                                  <configuration>
+                                      <target>
+                                          <java classname="org.apache.openjpa.ee.WASManagedRuntime" classpathref="maven.runtime.classpath" />
+                                      </target>
+                                  </configuration>
+                                  <goals>
+                                      <goal>run</goal>
+                                  </goals>
+                              </execution>-->
                     <execution>
                         <id>generate-standard-sco-proxies</id>
                         <phase>process-classes</phase>
@@ -249,7 +258,7 @@
                             </excludes>
                             <archive>
                                 <manifest>
-                                   <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                    <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
                                 </manifest>
                                 <manifestEntries>
                                     <Implementation-Build>${buildNumber}</Implementation-Build>

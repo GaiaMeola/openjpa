@@ -90,10 +90,13 @@ class CacheMapPutTest {
                     cache = Utils.validCacheMapWithKeyInCache();
                     break;
                 case IN_PINNED_NON_NULL:
-                    cache.put(key, pinnedValue);
+                    cache.pin(key);              // 1. Sposta la chiave in pinnedMap
+                    cache.put(key, pinnedValue); // 2. Assegna il valore preesistente
                     break;
                 case IN_PINNED_NULL:
-                    cache.put(key, null);
+                    cache.pin(key);              // 1. Sposta la chiave in pinnedMap
+                    // Non serve put(key, null) se pin() inizializza già a null,
+                    // ma rende esplicito il tuo caso T3-T4.
                     break;
                 case IN_SOFT:
                     cache = Utils.validCacheMapAlwaysSoft(); // Capacità 4

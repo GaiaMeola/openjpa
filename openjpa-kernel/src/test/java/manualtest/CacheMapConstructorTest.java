@@ -27,14 +27,14 @@ class CacheMapConstructorTest {
                 // T7: size = -1 -> Autocorrezione al valore predefinito 500
                 Arguments.of(true, 100, -1, 0.75f, 1, null, 100),
 
-                // 3.5 & 3.6: max positivo (Valori di frontiera)
+                // T5 & T6: max positivo (Valori di frontiera)
                 Arguments.of(true, 1, 100, 0.75f, 1, null, 1),
                 Arguments.of(true, 100, 100, 0.75f, 1, null, 100),
 
-                // 3.8: size = 0 -> Dimensione iniziale non valida (Lancia eccezione dalla mappa interna)
+                // T8: size = 0 -> Dimensione iniziale non valida (Lancia eccezione dalla mappa interna)
                 Arguments.of(true, 100, 0, 0.75f, 1, Exception.class, 0),
 
-                // 3.10 & 3.11: load <= 0 -> Eccezione prevista (Tabella 44)
+                // T10 & T11: load <= 0 -> Eccezione prevista (Tabella 44)
                 Arguments.of(true, 100, 100, -1f, 1, Exception.class, 0),
                 Arguments.of(true, 100, 100, 0f, 1, Exception.class, 0)
 

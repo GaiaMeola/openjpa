@@ -279,6 +279,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>${argLine}</argLine>
+                </configuration>
                 <version>3.5.2</version>
                 <!-- to run PIT
                 <configuration>

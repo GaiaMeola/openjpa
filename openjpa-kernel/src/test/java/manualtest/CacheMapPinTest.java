@@ -53,7 +53,7 @@ class CacheMapPinTest {
                  Class<? extends Exception> expectedException) {
 
         CacheMap cache;
-        Object keyToPin;
+        Object keyToPin = new Object();
 
         // --- SETUP ---
         if (useInvalidCache) {
@@ -75,14 +75,16 @@ class CacheMapPinTest {
                     for (int i = 0; i < 5; i++) cache.put("extra" + i, "val");
                     break;
                 case IN_PINNED_NON_NULL:
-                    cache = validCacheMapAlwaysPinned();
-                    keyToPin = VALID_KEY_IN_PINNED_NON_NULL;
+                    cache = emptyValidCacheMap();
+                    cache.pin(keyToPin); // Adesso la chiave è nella pinnedMap (valore null)
                     cache.put(keyToPin, "pinnedValue");
                     break;
+
                 case IN_PINNED_NULL:
-                    cache = validCacheMapAlwaysPinned();
-                    keyToPin = VALID_KEY_IN_PINNED_NULL;
-                    cache.put(keyToPin, null);
+                    cache = emptyValidCacheMap();
+                    cache.pin(keyToPin);
+                    // Non chiamare put. La chiave è in pinnedMap con valore NULL.
+                    // Il test chiamerà pin(keyToPin) -> riga 16 -> ritorna FALSE.
                     break;
                 case NOT_PRESENT:
                     cache = emptyValidCacheMap();

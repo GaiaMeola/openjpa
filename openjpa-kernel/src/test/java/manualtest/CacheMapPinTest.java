@@ -27,17 +27,17 @@ class CacheMapPinTest {
 
     private static Stream<Arguments> data() {
         return Stream.of(
-                Arguments.of(false, KeyCategory.IN_CACHE, true, null),
-                Arguments.of(false, KeyCategory.IN_SOFT, true, null),
-                Arguments.of(false, KeyCategory.IN_PINNED_NON_NULL, true, null),
-                Arguments.of(false, KeyCategory.IN_PINNED_NULL, false, null),
-                Arguments.of(false, KeyCategory.NOT_PRESENT, false, null),
+                Arguments.of(false, KeyCategory.IN_CACHE, true, null), //p2
+                Arguments.of(false, KeyCategory.IN_SOFT, true, null), //p3
+                Arguments.of(false, KeyCategory.IN_PINNED_NON_NULL, true, null), //p4
+                Arguments.of(false, KeyCategory.IN_PINNED_NULL, false, null), //p5
+                Arguments.of(false, KeyCategory.NOT_PRESENT, false, null), //p6
 
                 // Esempio corretto per il caso 6
-                Arguments.of(false, KeyCategory.INVALID, false, RuntimeException.class),
+                Arguments.of(false, KeyCategory.INVALID, false, RuntimeException.class), //p7
 
                 // Modifica 2: Caso NULL già allineato alla tua osservazione
-                Arguments.of(false, KeyCategory.NULL, false, null),
+                Arguments.of(false, KeyCategory.NULL, false, null), //p8
 
                 // test P1: Utilizzerà la nuova Utils.invalidCacheMap() aggiornata a max=0
                 Arguments.of(true, KeyCategory.NOT_PRESENT, false, null)
